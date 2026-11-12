@@ -1,50 +1,46 @@
 # Tableau Print Extension - MVP requirements
 
 Owner: Nefi Bernal / Nefi Analytics
-Version: 0.1.2
-Status: first implementation; live Tableau acceptance testing pending.
+Version: 0.1.3
+Status: first implementation; live Tableau testing pending. Full rendered-title capture is not implemented; see requirement 6.
 
-## Agreed requirements
+1. **Initial setup:** Display a gear before setup is saved. Clicking it opens setup with exactly two options: the table to print and background color. There is no report-name input and no refresh-source or refresh-field input.
+2. **Save:** Provide Save and Cancel. Retain the selected worksheet and color when the workbook is saved/published. After setup is saved, show the printer icon. Existing worksheet/color settings from earlier versions remain usable.
+3. **Printer icon:** Display a simple printer icon with the hover text "Print report."
+4. **Background:** Use the native color-control approach used by Stretch (`input type="color"`). No color-code entry is required. Desktop's native picker controls eyedropper availability. Save the background color with setup.
+5. **Data:** Retrieve all filtered table rows, including rows outside the visible scrolling area. Respect filters and dashboard filter actions affecting the selected table. Do not change the viewer's selections.
+6. **Report title - requested behavior and API limitation:** The requested behavior is to copy the table's full displayed title, including dynamic values such as <Data Update Time>. Tableau's supported Extensions API does not expose that rendered title. This requirement remains unresolved. Version 0.1.3 uses the selected worksheet's name as the PDF heading and filename; that is not a claim to capture the displayed title or its dynamic tokens. It does not inspect Tableau's private page DOM, guess title text, or substitute an extract timestamp. If the worksheet name and displayed title match, the heading will match; otherwise they will differ.
+7. **PDF:** Generate a paginated PDF with the heading, dashboard filters and their selections, and the complete retrieved table. Repeat column headers on each table page and do not cut off columns.
+8. **Refresh time removed:** Do not query extract-refresh metadata or print a separate refresh-time section, including an unavailable message. Refresh time is no longer an extension requirement. Capturing a dynamic date inside a rendered title remains subject to requirement 6.
+9. **Printing:** Open printing when possible. Always provide Open PDF / Download PDF when the browser or embedded PDF viewer prevents automatic printing.
+10. **Errors:** Show a clear message for data retrieval, PDF generation, or printing failures. Explain when current selections return no data.
+11. **Reuse:** Reuse the extension on similar flat tables by selecting a worksheet and background color during setup.
 
-1. **Initial setup:** Before configuration is saved, display a gear icon. Clicking it opens a setup screen where the author selects the table to print and enters a report name.
-2. **Save setup:** Provide a Save button. Retain the selected table and report name when the workbook is saved and published. After setup is saved, replace the gear with a printer icon.
-3. **Printer icon:** Hovering over the printer icon shows "Print report."
-4. **Background:** Provide a background-color setting using the same native color-control approach as Stretch (`input type="color"`). In Tableau Desktop, the intended experience is visual color selection with the screen-color eyedropper available in that environment. Save the selected color with the setup. No color-code entry is required. The first version uses a solid background because transparency is not confirmed for GitHub-hosted, network-enabled extensions. The exact Desktop picker and eyedropper must be verified in acceptance testing.
-5. **Retrieve data:** Clicking the printer retrieves all data from the configured table, reflecting current filters and selections affecting that table, including rows outside the visible scrolling area.
-6. **PDF report:** Generate a paginated PDF containing the configured report name, dashboard filters and their selections, the automatically retrieved data-refresh date and time, and all retrieved table data. No refresh setting or field selection is required. If Tableau does not provide the timestamp, show "Data refresh time unavailable" and continue printing. Filters and refresh time are always included. Repeat column headers on every page containing table data. Do not cut off columns.
-7. **Printing:** Open the print dialog after generating the PDF. If it cannot open automatically, provide access to the generated PDF so the viewer can open and print it.
-8. **Error messages:** Display a clear message when retrieval, generation, or printing fails. If the table has no data for current selections, explain that there is no data to print.
-9. **Reusability:** The same extension can be used on similar reports by configuring the target table and report name.
+## MVP implementation limits
 
-## Version-one implementation decisions
+- Tableau 2022.4+ summary-data reader; formatting improves on Tableau 2025.1+.
+- Flat tables; summary columns/rows follow Tableau API output. Complex pivoted layouts and Tableau-rendered total bands are not reproduced. Validate order and values against the source table.
+- Maximum 50,000 rows; stop explicitly above this limit rather than silently truncate.
+- Letter paper; automatic orientation, repeated heading, and page numbers. Wide tables continue horizontally with the first column repeated.
+- Dashboard worksheet filters exposed by the API are listed with their worksheet scope. Database predicates, security rules, and parameter-based custom filters are not automatically exposed as ordinary worksheet filter selections.
+- Generate PDFs in memory; do not upload or persist report values to a server or browser storage. Bundle libraries locally.
+- Native Desktop/Cloud printing, picker appearance, saved settings, permissions, and data shape need live testing.
+- Version app-page and script URLs so a newly loaded manifest requests the new setup screen. Upload all files together and use the included new .trex.
 
-These explain how the agreed behavior is implemented; they are not additional product features.
+## Acceptance checklist
 
-- Target: ordinary flat text tables. This is a data report, not a screenshot of Tableau. Complex pivoted crosstabs, Tableau-rendered subtotal/grand-total bands, and exact replication of Tableau's layout are not promised in this MVP. Summary columns/rows are printed in the order returned by Tableau; validate the resulting order against the intended worksheet.
-- Use the worksheet summary-data reader and retrieve every page. Table filters and parameter-driven calculations affect the returned data. Merely highlighting marks does not restrict the report; dashboard filter actions do. No underlying/raw database records are requested.
-- Automatically read `extractUpdateTime` from the selected table's data sources on each print request. No refresh-related setup is shown. If a timestamp is missing, invalid, inaccessible, or belongs to a live source, print "Data refresh time unavailable". Never substitute NOW() or the print time. For multiple sources, list each source and its own timestamp or unavailable message.
-- Collect filters exposed by worksheets on the dashboard; preserve worksheet scope. Filters internal to the database, row-level security rules, and parameters used as custom filters are not automatically exposed as ordinary worksheet filters. Unsupported filter descriptions are explicitly labeled unavailable. The first live test must check the actual dashboard's filter types.
-- Letter paper; automatic portrait/landscape selection based on column count; repeated report header and page numbers. Wide tables are split horizontally with the first column repeated. There is no paper/orientation setup added to this MVP.
-- Maximum 50,000 table rows per report in this browser-based first version. Larger results stop with a message; they are never silently shortened. This is a disclosed MVP limit, not a claim to support unlimited data.
-- The browser/embedded PDF viewer controls whether automatic printing is honored. Always expose Open PDF and Download PDF in the report window. OS printer errors and a viewer canceling a print job cannot reliably be detected by the extension.
-- The native color control is used directly, as in Stretch. Picker appearance/eyedropper availability is controlled by Tableau Desktop's embedded browser or the viewing browser, not by extension code.
-- Save through Tableau extension settings. The author must also save/publish the workbook to persist the setup for other viewers.
-- PDFs are generated in memory; no report values are uploaded, logged, or written to browser storage by the extension. Libraries and the font are served from this extension's own folder.
+- [ ] Setup shows Version 0.1.3 and only Table to print / Background color.
+- [ ] Save changes gear to printer; tooltip is Print report.
+- [ ] Save/reopen and publish preserve configuration.
+- [ ] PDF includes every filtered row and repeated column headers.
+- [ ] Wide PDF retains every column.
+- [ ] Heading matches the selected worksheet name. Do not mark dynamic displayed-title capture as passed.
+- [ ] No separate refresh-time line, placeholder, or refresh setup appears.
+- [ ] Native color picker and eyedropper work in the user's Desktop environment.
+- [ ] Printing and Open PDF / Download PDF fallbacks work in Desktop and Cloud.
 
-## Acceptance checklist in Tableau
+## Reference for title limitation
 
-- [ ] Add the `.trex` in Desktop; confirm gear icon and setup screen.
-- [ ] Enter a report name, choose table/refresh source and background color; Save.
-- [ ] Confirm the native Desktop picker includes the eyedropper in the user's environment.
-- [ ] Confirm printer icon and "Print report" tooltip.
-- [ ] Save, close, and reopen the workbook; setup is retained.
-- [ ] Publish to Tableau Cloud; setup is retained for a viewer.
-- [ ] Print a filtered table spanning several pages; compare row count and first/last rows.
-- [ ] Compare source table column/row order, aliases, and numeric/date values to the PDF.
-- [ ] Confirm filter labels/selections and worksheet scope match the dashboard.
-- [ ] Confirm the automatically included refresh time matches the actual extract.
-- [ ] With live/unavailable metadata, confirm the PDF prints with "Data refresh time unavailable".
-- [ ] For multiple data sources, confirm each source is labeled separately.
-- [ ] Verify repeated headers and wide-table column coverage.
-- [ ] Verify automatic printing and Open PDF / Download PDF fallbacks in Desktop and Cloud.
-- [ ] Verify empty-data and denied-data-access errors; missing refresh metadata must not block printing.
+https://tableau.github.io/extensions-api/api/interfaces/Worksheet.html
+https://tableau.github.io/extensions-api/api/interfaces/Sheet.html
+https://tableau.github.io/extensions-api/api/interfaces/VisualSpecification.html

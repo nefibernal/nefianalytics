@@ -15,7 +15,7 @@
   async function configure() {
     if (busy) return;
     busy = true; paint(); message.textContent = '';
-    try { await tableau.extensions.ui.displayDialogAsync(new URL('configure.html', location.href).href, '', { width: 540, height: 730 }); }
+    try { await tableau.extensions.ui.displayDialogAsync(new URL('configure.html?v=0.1.3', location.href).href, '', { width: 540, height: 730 }); }
     catch (e) { if (!PrintCore.closed(e)) message.textContent = 'Setup failed: ' + e.message; }
     finally { busy = false; paint(); }
   }
@@ -27,16 +27,16 @@
       const beforeFilters = await PrintCore.filters();
       const table = await PrintCore.readTable(PrintCore.sheet(config.worksheet), n => { action.title = 'Preparing ' + n.toLocaleString() + ' rows…'; });
       if (!table.rows.length) throw new Error('There is no data to print for the current selections.');
-      const refresh = await PrintCore.refreshValue(config);
+      
       const afterFilters = await PrintCore.filters();
       if (startChanges !== changeCount || JSON.stringify(beforeFilters) !== JSON.stringify(afterFilters)) throw new Error('The dashboard changed while the report was being prepared. Please click Print again.');
-      const payload = { title: config.reportName, worksheet: config.worksheet, refresh, filters: afterFilters, columns: table.columns.map(c => c.name), rows: table.rows };
-      await tableau.extensions.ui.displayDialogAsync(new URL('preview.html', location.href).href, JSON.stringify(payload), { width: 1000, height: 760 });
+      const payload = { title: PrintCore.sheet(config.worksheet).name, worksheet: config.worksheet, filters: afterFilters, columns: table.columns.map(c => c.name), rows: table.rows };
+      await tableau.extensions.ui.displayDialogAsync(new URL('preview.html?v=0.1.3', location.href).href, JSON.stringify(payload), { width: 1000, height: 760 });
     } catch (e) {
       if (!PrintCore.closed(e)) {
         message.textContent = e.message || 'Unable to prepare this report.';
         try {
-          await tableau.extensions.ui.displayDialogAsync(new URL('preview.html', location.href).href, JSON.stringify({ error: message.textContent }), { width: 520, height: 260 });
+          await tableau.extensions.ui.displayDialogAsync(new URL('preview.html?v=0.1.3', location.href).href, JSON.stringify({ error: message.textContent }), { width: 520, height: 260 });
         } catch (_) { /* If dialogs are blocked, retain the message in the dashboard. */ }
       }
     }

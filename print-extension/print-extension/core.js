@@ -13,7 +13,7 @@
   function readConfig() {
     const s = tableau.extensions.settings.get(KEY);
     if (!s) return null;
-    try { const c = JSON.parse(s); return c.worksheet && c.reportName ? c : null; }
+    try { const c = JSON.parse(s); return c.worksheet ? c : null; }
     catch (_) { return null; }
   }
   async function saveConfig(c) {
@@ -75,26 +75,6 @@
     });
     return Array.from(grouped.values());
   }
-  async function refreshValue(c) {
-    const unavailable = 'Data refresh time unavailable';
-    try {
-      const sources = await sheet(c.worksheet).getDataSourcesAsync();
-      if (!sources.length) return unavailable;
-      const entries = sources.map(source => {
-        const date = source.isExtract && source.extractUpdateTime ? new Date(source.extractUpdateTime) : null;
-        const time = date && !Number.isNaN(date.getTime())
-          ? new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'long' }).format(date)
-          : unavailable;
-        return { name: source.name || 'Unnamed data source', time };
-      });
-      if (entries.length === 1) return entries[0].time;
-      // Show every source separately instead of choosing a misleading newest timestamp.
-      return entries.map(e => e.name + ': ' + e.time).join('; ');
-    } catch (_) {
-      // Missing refresh metadata must not prevent the filtered report from printing.
-      return unavailable;
-    }
-  }
   function closed(e) { return e && (e.errorCode === 'dialog-closed-by-user' || (root.tableau && e.errorCode === tableau.ErrorCodes.DialogClosedByUser)); }
-  root.PrintCore = { KEY, MAX_ROWS, value, readConfig, saveConfig, sheet, readTable, filters, describeFilter, refreshValue, closed };
+  root.PrintCore = { KEY, MAX_ROWS, value, readConfig, saveConfig, sheet, readTable, filters, describeFilter, closed };
 })(globalThis);

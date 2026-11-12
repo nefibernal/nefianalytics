@@ -1,6 +1,14 @@
-# Nefi Print Report - first version
+# Nefi Print Report - v0.1.3
 
 A reusable Tableau dashboard extension for printing a filtered flat table as a paginated PDF.
+
+## Updating an existing installation
+
+1. Upload the entire new print-extension folder into the same GitHub repository location and commit, replacing matching files.
+2. Wait for GitHub Pages to finish deployment.
+3. Remove the old extension from the test dashboard and add the new **Nefi_Print_Report.trex** included in this ZIP. This manifest requests the versioned entry URL; reloading an old manifest can keep its old cached URL.
+4. Open setup and verify **Version 0.1.3**. If you still see a refresh-source control, the previous files or cached page are still loading.
+5. A safe-list entry of `https://nefibernal.github.io/nefianalytics/.*` covers the versioned URL. If you allow only an exact URL, update it to the complete source-location URL in the new manifest.
 
 ## 1. Upload to your existing GitHub repository
 
@@ -18,7 +26,7 @@ Do not replace your repository's existing homepage `index.html`. These files all
 
 As site administrator, go to **Settings > Extensions > Enable Specific Extensions** and add this exact URL:
 
-https://nefibernal.github.io/nefianalytics/print-extension/index.html
+https://nefibernal.github.io/nefianalytics/print-extension/index.html?v=0.1.3
 
 Allow extensions to run. This version does not request Full Data Access: it reads worksheet summary data, worksheet filters, and extract metadata. Viewers still need workbook access and permission to access summary data. The normal extension permission prompt may appear.
 
@@ -31,13 +39,15 @@ Requires Tableau Desktop/Server 2022.4 or later (summary-data reader). Worksheet
 3. Select **Access Local Extensions** and open `Nefi_Print_Report.trex` from the extracted folder.
 4. Allow the extension to run if prompted.
 5. Click the **gear** to open setup.
-6. Enter the report name and select the table worksheet.
-7. Click the background color swatch and choose the background color. It uses the same native HTML color control as Stretch; the Desktop environment controls eyedropper availability.
+6. Select **Table to print**.
+7. Choose the **Background color** using the native color picker.
 8. Click **Save**. The icon becomes a printer.
-9. Make the extension **Floating**, resize to roughly 38 x 38 pixels, and position it on the dashboard. Set Tableau object padding/borders as desired.
-10. **Save and publish the workbook** to retain the setup for viewers.
+9. Make the extension Floating and position it on the dashboard.
+10. Save/publish the workbook so viewers retain the configuration.
 
-The data-refresh timestamp is automatic. There are no refresh-source or refresh-field controls. Each report reads the selected table's data-source metadata. If Tableau does not provide a valid extract timestamp (including live connections), the report shows **Data refresh time unavailable** and continues printing. When the table uses several sources, each source is listed with its own timestamp or unavailable message; the extension does not choose a single newest timestamp.
+Setup must show **Version 0.1.3**. There are exactly two options: table and background. There are no report-name or refresh-time controls. The extension does not query extract-refresh metadata and prints no refresh-time section.
+
+**Title limitation:** The supported Tableau Extensions API exposes the worksheet name, not the full rendered worksheet title or resolved <Data Update Time> token. This build uses the worksheet name as the report heading. Capturing the full dynamic displayed title is an unresolved requirement, not a completed feature. See REQUIREMENTS.md.
 
 To change setup later, use the extension object's menu > **Configure**.
 
@@ -45,7 +55,7 @@ To change setup later, use the extension object's menu > **Configure**.
 
 Click the printer. The extension reads all filtered table rows and creates the PDF in a report window. It tries to open printing when the PDF viewer loads. If no print dialog appears, select **Print**, **Open PDF**, or **Download PDF**. Downloading and opening the PDF in a local PDF reader is the most dependable fallback in Desktop environments without an embedded PDF viewer.
 
-The report always includes its name, dashboard worksheet filters, and the actual data-refresh timestamp. Wide tables continue across horizontal page groups with the first column repeated.
+The report includes the selected worksheet name and dashboard worksheet filters. It has no separate refresh-time line. Wide tables continue across horizontal page groups with the first column repeated.
 
 ## What is included
 
@@ -69,7 +79,7 @@ Files in this public GitHub Pages repository are public code, but dashboard data
 
 ## Technical references
 
-- Tableau DataSource.extractUpdateTime: https://tableau.github.io/extensions-api/api/interfaces/DataSource.html
+- Worksheet interface (worksheet name, no rendered title): https://tableau.github.io/extensions-api/api/interfaces/Worksheet.html
 - Summary reader: https://tableau.github.io/extensions-api/api/interfaces/DataTableReader.html
 - Saved settings: https://tableau.github.io/extensions-api/api/interfaces/Settings.html
 - Extension dialogs: https://tableau.github.io/extensions-api/api/interfaces/UI.html

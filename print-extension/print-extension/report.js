@@ -12,16 +12,14 @@
     doc.setFontSize(14);
     const title = doc.splitTextToSize(model.title, usable);
     doc.setFontSize(9);
-    const refresh = doc.splitTextToSize('Data refreshed: ' + model.refresh, usable);
-    const headerBottom = margin + title.length * 17 + refresh.length * 12 + 18;
-    if (headerBottom > height / 2) throw new Error('The report name or refresh timestamp is too long to fit the page.');
+    const headerBottom = margin + title.length * 17 + 18;
+    if (headerBottom > height / 2) throw new Error('The worksheet name is too long to fit the page.');
     const headerPages = new Set();
     function header() {
       const page = doc.internal.getCurrentPageInfo().pageNumber;
       if (headerPages.has(page)) return;
       headerPages.add(page);
       doc.setTextColor(25); doc.setFontSize(14); doc.text(title, margin, margin + 12);
-      doc.setFontSize(9); doc.setTextColor(65); doc.text(refresh, margin, margin + title.length * 17 + 13);
       doc.setDrawColor(190); doc.line(margin, headerBottom - 9, width - margin, headerBottom - 9);
     }
     let y = headerBottom + 8;
