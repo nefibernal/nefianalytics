@@ -1,9 +1,0 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Set up print report</title><link rel="stylesheet" href="styles.css"><script src="vendor/tableau.extensions.js" defer></script><script src="core.js" defer></script><script src="configure.js" defer></script></head>
-<body><main class="setup"><h1>Set up print report</h1><p class="intro">Choose the table and name for the printed report.</p><form id="setup">
-<label for="reportName">Report name</label><input id="reportName" type="text" required maxlength="160">
-<label for="worksheet">Table to print</label><select id="worksheet" required></select>
-<fieldset><label for="refreshSource">Data-refresh timestamp source</label><select id="refreshSource" required></select><p class="hint">Choose the table's Tableau extract, or a worksheet containing the actual refresh timestamp for a live connection. This timestamp is always printed.</p>
-<div id="fieldArea" hidden><label for="refreshField">Data-refresh field</label><select id="refreshField"></select><p class="hint">The selected worksheet must contain one refresh timestamp. Use a date/time field, or text containing the date, time, and time zone. Do not use NOW() or the print time.</p></div></fieldset>
-<label for="background">Background color</label><input id="background" type="color" value="#ffffff"><p class="hint">Click to open the native color picker. Screen-color selection depends on your Tableau Desktop or browser environment.</p>
-<p id="error" class="error" role="alert"></p><div class="actions"><button type="button" id="cancel" class="secondary">Cancel</button><button id="save" class="primary" type="submit" disabled>Save</button></div>
-</form></main></body></html>
