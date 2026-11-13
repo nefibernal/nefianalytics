@@ -1,0 +1,24 @@
+{
+  "tableau-extensions": {
+    "commit": "5dbee2af38ec928af109d084fa6571733b05dea5",
+    "source": "https://raw.githubusercontent.com/tableau/extensions-api/5dbee2af38ec928af109d084fa6571733b05dea5/lib/tableau.extensions.1.latest.js",
+    "file": "tableau.extensions.js"
+  },
+  "jspdf": {
+    "version": "4.2.1",
+    "source": "https://raw.githubusercontent.com/parallax/jsPDF/v4.2.1/dist/jspdf.umd.min.js",
+    "file": "jspdf.umd.min.js"
+  },
+  "jspdf-autotable": {
+    "version": "5.0.7",
+    "source": "https://raw.githubusercontent.com/simonbengtsson/jsPDF-AutoTable/v5.0.7/dist/jspdf.plugin.autotable.min.js",
+    "file": "jspdf-autotable.min.js",
+    "jspdfPeerDependency": "^2 || ^3 || ^4"
+  },
+  "font": {
+    "name": "DejaVu Sans",
+    "source": "https://dejavu-fonts.github.io/",
+    "file": "font.js",
+    "note": "Existing bundled font unchanged."
+  }
+}

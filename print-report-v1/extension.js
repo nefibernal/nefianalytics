@@ -1,0 +1,163 @@
+(function () {
+  "use strict";
+  const button = document.getElementById("launch"),
+    notice = document.getElementById("notice");
+  const gear =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m9 3-1 2-2 1-2-.1L2.5 8.5 4 10v3l-1.5 1.5L4 17l2-.1 2 1 1 3h4l1-3 2-1 2 .1 1.5-2.5L18 13v-3l1.5-1.5L18 5.9 16 6l-2-1-1-2Z"/><circle cx="11" cy="12" r="3"/></svg>';
+  const downloadIcon =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg>';
+  let saved = null,
+    busy = false,
+    changes = 0;
+  const page = (name) => new URL(name + "?build=1.0.4", location.href).href;
+  function paint() {
+    button.innerHTML = saved ? downloadIcon : gear;
+    button.title = saved ? "Download report" : "Set up PDF report";
+    button.setAttribute("aria-label", button.title);
+    button.disabled = busy;
+    const color = saved?.color || "#ffffff";
+    document.body.style.backgroundColor = color;
+    const rgb = color
+      .slice(1)
+      .match(/../g)
+      .map((v) => parseInt(v, 16));
+    document.body.style.color =
+      rgb[0] * 0.299 + rgb[1] * 0.587 + rgb[2] * 0.114 < 140
+        ? "#ffffff"
+        : "#222222";
+  }
+  async function showError(message) {
+    notice.textContent = message;
+    try {
+      await tableau.extensions.ui.displayDialogAsync(
+        page("view.html"),
+        JSON.stringify({ error: message }),
+        { width: 520, height: 260 },
+      );
+    } catch (_) {}
+  }
+  async function configure() {
+    if (busy) return;
+    busy = true;
+    notice.textContent = "";
+    paint();
+    try {
+      if (!PrintData.isAuthoring())
+        throw Error(
+          "The dashboard author must configure this extension in authoring mode.",
+        );
+      const result = await tableau.extensions.ui.displayDialogAsync(
+        page("setup.html"),
+        JSON.stringify(saved || {}),
+        { width: 500, height: 620 },
+      );
+      const response = JSON.parse(result || "{}");
+      if (response.saved && PrintData.isConfig(response.config))
+        saved = response.config;
+      else saved = PrintData.config() || saved;
+    } catch (e) {
+      if (!PrintData.canceled(e))
+        await showError("Unable to open or save setup: " + (e.message || e));
+    } finally {
+      busy = false;
+      paint();
+    }
+  }
+  async function download() {
+    if (busy) return;
+    busy = true;
+    notice.textContent = "";
+    button.classList.add("working");
+    paint();
+    try {
+      const start = changes,
+        configuration = { ...saved },
+        w = PrintData.worksheet(configuration.table);
+      // With the summary Off, only inspect filters on the table being exported.
+      const scope = configuration.includeFilters === false ? [w] : undefined;
+      const before = await PrintData.filters(scope),
+        data = await PrintData.table(w),
+        after = await PrintData.filters(scope);
+      if (!data.rows.length)
+        throw Error("There is no data to download for the current selections.");
+      if (start !== changes || JSON.stringify(before) !== JSON.stringify(after))
+        throw Error(
+          "The dashboard changed while the report was being prepared. Please download again.",
+        );
+      const report = {
+        title: w.name,
+        orientation: configuration.orientation,
+        columns: data.columns,
+        rows: data.rows,
+        filters: configuration.includeFilters === false ? [] : after,
+        includeFilters: configuration.includeFilters !== false,
+      };
+      notice.textContent = "Creating PDF…";
+      // Paint the status before synchronous PDF generation.
+      await new Promise((resolve) =>
+        requestAnimationFrame(() => setTimeout(resolve, 0)),
+      );
+      if (start !== changes)
+        throw Error(
+          "The dashboard changed while the report was being prepared. Please download again.",
+        );
+      ReportDownload.request(report);
+      notice.textContent =
+        "PDF download requested. Open the downloaded file to view or print it.";
+    } catch (e) {
+      if (!PrintData.canceled(e))
+        await showError(e.message || "Unable to prepare this report.");
+    } finally {
+      busy = false;
+      button.classList.remove("working");
+      paint();
+    }
+  }
+  button.addEventListener("click", () => (saved ? download() : configure()));
+  (async () => {
+    try {
+      // Tableau completes permission handling before successful initialization.
+      await tableau.extensions.initializeAsync({ configure });
+      saved = PrintData.config();
+      paint();
+      // Open exactly once in this initial session, only if no configuration exists.
+      if (!saved) {
+        if (PrintData.isAuthoring()) await configure();
+        else
+          notice.textContent =
+            "The dashboard author must configure this extension in authoring mode.";
+      }
+      tableau.extensions.settings.addEventListener(
+        tableau.TableauEventType.SettingsChanged,
+        () => {
+          changes++;
+          saved = PrintData.config();
+          paint();
+        },
+      );
+      for (const w of tableau.extensions.dashboardContent.dashboard
+        .worksheets) {
+        w.addEventListener(
+          tableau.TableauEventType.FilterChanged,
+          () => changes++,
+        );
+        try {
+          if (tableau.TableauEventType.SummaryDataChanged)
+            w.addEventListener(
+              tableau.TableauEventType.SummaryDataChanged,
+              () => changes++,
+            );
+        } catch (_) {}
+      }
+      for (const p of await tableau.extensions.dashboardContent.dashboard.getParametersAsync())
+        p.addEventListener(
+          tableau.TableauEventType.ParameterChanged,
+          () => changes++,
+        );
+    } catch (e) {
+      notice.textContent =
+        "Unable to initialize the Tableau extension: " + (e.message || e);
+      button.disabled = true;
+    }
+  })();
+})();
