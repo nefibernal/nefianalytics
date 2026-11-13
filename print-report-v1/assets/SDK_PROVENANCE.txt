@@ -1,5 +1,0 @@
-Tableau Extensions API bundled snapshot
-Source commit: 5dbee2af38ec928af109d084fa6571733b05dea5
-Immutable URL: https://raw.githubusercontent.com/tableau/extensions-api/5dbee2af38ec928af109d084fa6571733b05dea5/lib/tableau.extensions.1.latest.js
-Matches fetched upstream bytes: True
-SHA256: af10dc548b24592b08a23b21ce221aefb6b56c84f45617ad0338789be5e7c20f
