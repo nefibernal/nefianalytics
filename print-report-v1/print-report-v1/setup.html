@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Set up PDF report</title>
+    <link rel="stylesheet" href="ui.css?v=1.0.6" />
+    <script src="assets/tableau.extensions.js?v=1.0.6" defer></script>
+    <script src="data.js?v=1.0.6" defer></script>
+    <script src="layout.js?v=1.0.6" defer></script>
+    <script src="setup.js?v=1.0.6" defer></script>
+  </head>
+  <body>
+    <main class="settings">
+      <h1>Set up PDF report</h1>
+      <form id="settings-form">
+        <label for="table">Table to export</label
+        ><select id="table" required disabled>
+          <option value="">Loading tables…</option>
+        </select>
+        <section id="column-settings" hidden>
+          <h2>PDF columns</h2>
+          <p class="column-help">
+            Check columns to include them. Use the arrows to change their order.
+          </p>
+          <p id="column-status" role="status"></p>
+          <div id="column-list" role="list"></div>
+        </section>
+        <label for="color">Background color</label
+        ><input
+          id="color"
+          type="color"
+          value="#ffffff"
+          aria-label="Background color"
+        />
+        <fieldset>
+          <legend>Report orientation</legend>
+          <label class="choice"
+            ><input
+              type="radio"
+              name="orientation"
+              value="portrait"
+              checked
+            />Portrait</label
+          ><label class="choice"
+            ><input
+              type="radio"
+              name="orientation"
+              value="landscape"
+            />Landscape</label
+          >
+        </fieldset>
+        <p id="problem" class="error" role="alert"></p>
+        <div class="buttons">
+          <button type="button" id="cancel">Cancel</button
+          ><button type="submit" id="save" class="primary" disabled>
+            Save
+          </button>
+        </div>
+      </form>
+      <footer class="setup-footer">
+        <p class="build">PDF Report Download 1.0.6</p>
+        <p class="creator">
+          Created by Nefi Bernal ·
+          <a
+            href="https://www.linkedin.com/in/nefi-bernal/"
+            target="_blank"
+            rel="noopener noreferrer"
+            >LinkedIn profile</a
+          >
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>
