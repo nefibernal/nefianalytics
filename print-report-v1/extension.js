@@ -9,7 +9,7 @@
   let saved = null,
     busy = false,
     changes = 0;
-  const page = (name) => new URL(name + "?build=1.0.5", location.href).href;
+  const page = (name) => new URL(name + "?build=1.0.6", location.href).href;
   function paint() {
     button.innerHTML = saved
       ? downloadIcon + '<span class="icon-label" aria-hidden="true">PDF</span>'
@@ -51,7 +51,7 @@
       const result = await tableau.extensions.ui.displayDialogAsync(
         page("setup.html"),
         JSON.stringify(saved || {}),
-        { width: 500, height: 620 },
+        { width: 580, height: 740 },
       );
       const response = JSON.parse(result || "{}");
       if (response.saved && PrintData.isConfig(response.config))
@@ -86,11 +86,12 @@
         throw Error(
           "The dashboard changed while the report was being prepared. Please download again.",
         );
+      const arranged = ReportLayout.apply(data, configuration.columns);
       const report = {
         title: w.name,
         orientation: configuration.orientation,
-        columns: data.columns,
-        rows: data.rows,
+        columns: arranged.columns,
+        rows: arranged.rows,
       };
       notice.textContent = "Creating PDF…";
       // Paint the status before synchronous PDF generation.

@@ -4,10 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Set up PDF report</title>
-    <link rel="stylesheet" href="ui.css?v=1.0.5" />
-    <script src="assets/tableau.extensions.js?v=1.0.5" defer></script>
-    <script src="data.js?v=1.0.5" defer></script>
-    <script src="setup.js?v=1.0.5" defer></script>
+    <link rel="stylesheet" href="ui.css?v=1.0.6" />
+    <script src="assets/tableau.extensions.js?v=1.0.6" defer></script>
+    <script src="data.js?v=1.0.6" defer></script>
+    <script src="layout.js?v=1.0.6" defer></script>
+    <script src="setup.js?v=1.0.6" defer></script>
   </head>
   <body>
     <main class="settings">
@@ -17,6 +18,14 @@
         ><select id="table" required disabled>
           <option value="">Loading tables…</option>
         </select>
+        <section id="column-settings" hidden>
+          <h2>PDF columns</h2>
+          <p class="column-help">
+            Check columns to include them. Use the arrows to change their order.
+          </p>
+          <p id="column-status" role="status"></p>
+          <div id="column-list" role="list"></div>
+        </section>
         <label for="color">Background color</label
         ><input
           id="color"
@@ -50,7 +59,7 @@
         </div>
       </form>
       <footer class="setup-footer">
-        <p class="build">PDF Report Download 1.0.5</p>
+        <p class="build">PDF Report Download 1.0.6</p>
         <p class="creator">
           Created by Nefi Bernal ·
           <a

@@ -10,7 +10,21 @@
       typeof value.table === "string" &&
       value.table.trim() &&
       /^#[0-9a-f]{6}$/i.test(value.color) &&
-      ["portrait", "landscape"].includes(value.orientation)
+      ["portrait", "landscape"].includes(value.orientation) &&
+      (value.columns === undefined ||
+        (Array.isArray(value.columns) &&
+          value.columns.length > 0 &&
+          value.columns.every(
+            (column) =>
+              column &&
+              typeof column.key === "string" &&
+              column.key &&
+              typeof column.label === "string" &&
+              typeof column.visible === "boolean",
+          ) &&
+          new Set(value.columns.map((column) => column.key)).size ===
+            value.columns.length &&
+          value.columns.some((column) => column.visible)))
     );
   }
 
@@ -22,6 +36,9 @@
             table: value.table,
             color: value.color,
             orientation: value.orientation,
+            ...(value.columns
+              ? { columns: value.columns.map((column) => ({ ...column })) }
+              : {}),
           }
         : null;
     } catch (_) {
@@ -52,6 +69,15 @@
         table: value.table,
         color: value.color,
         orientation: value.orientation,
+        ...(value.columns
+          ? {
+              columns: value.columns.map((column) => ({
+                key: column.key,
+                label: column.label,
+                visible: column.visible,
+              })),
+            }
+          : {}),
       }),
     );
     try {
@@ -104,6 +130,12 @@
     let readerColumns = [];
     let viewIndices = [];
     const rows = [];
+    const identities = [];
+    const names = viewColumns.map((field) =>
+      field.fieldName.toLowerCase().replace(/\s/g, ""),
+    );
+    const needsIdentities =
+      names.includes("measurenames") && names.includes("measurevalues");
     try {
       for (let pageNumber = 0; pageNumber < reader.pageCount; pageNumber++) {
         const page = await reader.getPageAsync(pageNumber);
@@ -160,13 +192,30 @@
           if (row.length !== columns.length)
             throw Error("Tableau returned an inconsistent table row.");
           rows.push(viewIndices.map((index) => text(row[index])));
+          if (needsIdentities)
+            identities.push(
+              viewIndices.map((index) => {
+                const cell = row[index];
+                return cell && typeof cell === "object" && "value" in cell
+                  ? [typeof cell.value, cell.value]
+                  : ["formatted", text(cell)];
+              }),
+            );
         }
       }
       if (rows.length !== reader.totalRowCount)
         throw Error(
           "Tableau returned an incomplete row count. Please download again.",
         );
-      return { columns, rows };
+      return {
+        columns,
+        rows,
+        fields: viewColumns.map((field) => ({
+          fieldId: field.fieldId,
+          fieldName: field.fieldName,
+        })),
+        identities,
+      };
     } catch (error) {
       primaryError = error;
       throw error;

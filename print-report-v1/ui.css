@@ -182,3 +182,48 @@ nav a {
   line-height: 1.2;
   margin-top: 2px;
 }
+
+#column-settings {
+  margin-top: 22px;
+}
+#column-settings h2 {
+  font-size: 16px;
+  margin: 0 0 6px;
+}
+.column-help,
+#column-status {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #555;
+  margin: 6px 0;
+}
+#column-list {
+  max-height: 230px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+.column-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 9px;
+  border-bottom: 1px solid #eee;
+}
+.column-row:last-child {
+  border-bottom: 0;
+}
+.column-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+.column-row button {
+  padding: 3px 8px;
+}
