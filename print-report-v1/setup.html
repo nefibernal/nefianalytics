@@ -4,11 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Set up PDF report</title>
-    <link rel="stylesheet" href="ui.css?v=1.0.6" />
-    <script src="assets/tableau.extensions.js?v=1.0.6" defer></script>
-    <script src="data.js?v=1.0.6" defer></script>
-    <script src="layout.js?v=1.0.6" defer></script>
-    <script src="setup.js?v=1.0.6" defer></script>
+    <link rel="stylesheet" href="ui.css?v=1.0.9" />
+    <script src="assets/tableau.extensions.js?v=1.0.9" defer></script>
+    <script src="subtotals.js?v=1.0.9" defer></script>
+    <script src="data.js?v=1.0.9" defer></script>
+    <script src="layout.js?v=1.0.9" defer></script>
+    <script src="setup.js?v=1.0.9" defer></script>
   </head>
   <body>
     <main class="settings">
@@ -23,8 +24,36 @@
           <p class="column-help">
             Check columns to include them. Use the arrows to change their order.
           </p>
+          <p class="column-help">
+            Number formatting is available only for numeric columns. Text and
+            dates are unchanged. Percentage formatting uses fractional values
+            (0.125 becomes 12.5%).
+          </p>
           <p id="column-status" role="status"></p>
           <div id="column-list" role="list"></div>
+        </section>
+        <section id="subtotal-settings" hidden>
+          <h2>Subtotals</h2>
+          <label class="subtotal-toggle"
+            ><input id="include-subtotals" type="checkbox" />Include
+            subtotals</label
+          >
+          <div id="subtotal-options" hidden>
+            <label for="subtotal-group">Group by</label>
+            <select id="subtotal-group">
+              <option value="">Select a column…</option>
+            </select>
+            <p class="column-help">
+              Choose a calculation for each numeric column to subtotal.
+            </p>
+            <div id="subtotal-calculations"></div>
+            <p class="column-help">
+              Rows are grouped in first-seen order, with a subtotal after each
+              group. Calculations use report rows and skip missing numbers.
+              Average is an unweighted average. Subtotals use the column's
+              number format; automatic format shows up to six decimals.
+            </p>
+          </div>
         </section>
         <label for="color">Background color</label
         ><input
@@ -59,7 +88,7 @@
         </div>
       </form>
       <footer class="setup-footer">
-        <p class="build">PDF Report Download 1.0.6</p>
+        <p class="build">PDF Report Download 1.0.9</p>
         <p class="creator">
           Created by Nefi Bernal ·
           <a

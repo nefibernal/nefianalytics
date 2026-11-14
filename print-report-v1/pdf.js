@@ -14,7 +14,7 @@
     doc.setFont("Report", "normal");
     doc.setProperties({
       title: report.title,
-      creator: "PDF Report Download 1.0.6",
+      creator: "PDF Report Download 1.0.9",
     });
     const width = doc.internal.pageSize.getWidth(),
       height = doc.internal.pageSize.getHeight(),
@@ -60,12 +60,26 @@
       wide = sum > usable;
     if (!wide)
       for (const c of Object.values(widths)) c.cellWidth *= (usable - 1) / sum;
+    const subtotalRows = new Set(report.subtotalRows || []);
     doc.autoTable({
       head: [report.columns],
       body: report.rows,
       startY: y,
       theme: "grid",
       showHead: "everyPage",
+      rowPageBreak: "avoid",
+      didParseCell: (cell) => {
+        if (cell.section === "body" && subtotalRows.has(cell.row.index)) {
+          cell.cell.styles.fillColor = [225, 233, 241];
+          cell.cell.styles.textColor = [20, 40, 60];
+          cell.cell.styles.lineWidth = {
+            top: 0.8,
+            bottom: 0.3,
+            left: 0.3,
+            right: 0.3,
+          };
+        }
+      },
       margin: { left: margin, right: margin, top: top + 12, bottom: 32 },
       styles: {
         font: "Report",

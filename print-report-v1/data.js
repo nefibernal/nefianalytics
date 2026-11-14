@@ -20,11 +20,14 @@
               typeof column.key === "string" &&
               column.key &&
               typeof column.label === "string" &&
-              typeof column.visible === "boolean",
+              typeof column.visible === "boolean" &&
+              (column.format === undefined ||
+                /^(auto|number:[0-6]|percent:[0-2])$/.test(column.format)),
           ) &&
           new Set(value.columns.map((column) => column.key)).size ===
             value.columns.length &&
-          value.columns.some((column) => column.visible)))
+          value.columns.some((column) => column.visible))) &&
+      ReportSubtotals.valid(value.subtotals, value.columns)
     );
   }
 
@@ -36,6 +39,7 @@
             table: value.table,
             color: value.color,
             orientation: value.orientation,
+            subtotals: ReportSubtotals.copy(value.subtotals),
             ...(value.columns
               ? { columns: value.columns.map((column) => ({ ...column })) }
               : {}),
@@ -69,12 +73,14 @@
         table: value.table,
         color: value.color,
         orientation: value.orientation,
+        subtotals: ReportSubtotals.copy(value.subtotals),
         ...(value.columns
           ? {
               columns: value.columns.map((column) => ({
                 key: column.key,
                 label: column.label,
                 visible: column.visible,
+                format: column.format || "auto",
               })),
             }
           : {}),
@@ -131,11 +137,7 @@
     let viewIndices = [];
     const rows = [];
     const identities = [];
-    const names = viewColumns.map((field) =>
-      field.fieldName.toLowerCase().replace(/\s/g, ""),
-    );
-    const needsIdentities =
-      names.includes("measurenames") && names.includes("measurevalues");
+    const numbers = [];
     try {
       for (let pageNumber = 0; pageNumber < reader.pageCount; pageNumber++) {
         const page = await reader.getPageAsync(pageNumber);
@@ -192,15 +194,26 @@
           if (row.length !== columns.length)
             throw Error("Tableau returned an inconsistent table row.");
           rows.push(viewIndices.map((index) => text(row[index])));
-          if (needsIdentities)
-            identities.push(
-              viewIndices.map((index) => {
-                const cell = row[index];
-                return cell && typeof cell === "object" && "value" in cell
-                  ? [typeof cell.value, cell.value]
-                  : ["formatted", text(cell)];
-              }),
-            );
+          // Reformat native numbers only, never parse displayed dates, IDs, or currency strings.
+          numbers.push(
+            viewIndices.map((index) => {
+              const value =
+                row[index] && typeof row[index] === "object"
+                  ? row[index].value
+                  : undefined;
+              return typeof value === "number" && Number.isFinite(value)
+                ? value
+                : null;
+            }),
+          );
+          identities.push(
+            viewIndices.map((index) => {
+              const cell = row[index];
+              return cell && typeof cell === "object" && "value" in cell
+                ? [typeof cell.value, cell.value]
+                : ["formatted", text(cell)];
+            }),
+          );
         }
       }
       if (rows.length !== reader.totalRowCount)
@@ -213,8 +226,10 @@
         fields: viewColumns.map((field) => ({
           fieldId: field.fieldId,
           fieldName: field.fieldName,
+          dataType: field.dataType,
         })),
         identities,
+        numbers,
       };
     } catch (error) {
       primaryError = error;

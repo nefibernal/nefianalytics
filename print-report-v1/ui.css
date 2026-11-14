@@ -227,3 +227,44 @@ nav a {
 .column-row button {
   padding: 3px 8px;
 }
+
+.column-row .column-number-format {
+  grid-column: 1 / -1;
+  width: 100%;
+  font-size: 12px;
+  padding: 5px 7px;
+  margin-top: 2px;
+}
+
+#subtotal-settings {
+  margin-top: 22px;
+}
+#subtotal-settings h2 {
+  font-size: 16px;
+  margin: 0 0 6px;
+}
+.subtotal-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 400;
+  margin: 8px 0;
+}
+.subtotal-calculation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 130px;
+  align-items: center;
+  gap: 8px;
+  margin: 7px 0;
+}
+.subtotal-calculation label {
+  font-size: 13px;
+  font-weight: 400;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.subtotal-calculation select {
+  font-size: 12px;
+  padding: 6px;
+}

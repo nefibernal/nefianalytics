@@ -8,6 +8,7 @@
   let columns = [],
     generation = 0,
     initialConfig = null;
+  let subtotalDraft = { enabled: false, groupBy: "", calculations: [] };
 
   function updateControls() {
     const disabled = !ready || saving || !canConfigure;
@@ -37,6 +38,7 @@
       checkbox.checked = column.visible;
       checkbox.addEventListener("change", () => {
         columns[index].visible = checkbox.checked;
+        renderSubtotals();
       });
       name.textContent = column.label;
       label.append(checkbox, name);
@@ -68,9 +70,119 @@
         });
         row.append(move);
       }
+      if (column.numeric) {
+        const format = document.createElement("select");
+        format.className = "column-number-format";
+        format.setAttribute("aria-label", "Number format for " + column.label);
+        format.add(new Option("As provided by Tableau", "auto"));
+        for (let places = 0; places <= 6; places++) {
+          format.add(
+            new Option(
+              places === 0
+                ? "Whole number"
+                : "Number: " + places + " decimal" + (places === 1 ? "" : "s"),
+              "number:" + places,
+            ),
+          );
+        }
+        for (let places = 0; places <= 2; places++) {
+          format.add(
+            new Option(
+              "Percentage: " + places + " decimal" + (places === 1 ? "" : "s"),
+              "percent:" + places,
+            ),
+          );
+        }
+        format.value = column.format || "auto";
+        format.addEventListener("change", () => {
+          columns[index].format = format.value;
+        });
+        row.append(format);
+      }
       element("column-list").append(row);
     });
+    renderSubtotals();
+  }
+  function renderSubtotals() {
+    element("subtotal-settings").hidden = !columns.length;
+    element("include-subtotals").checked = subtotalDraft.enabled;
+    element("subtotal-options").hidden = !subtotalDraft.enabled;
+    const visible = columns.filter((column) => column.visible);
+    const group = element("subtotal-group");
+    group.replaceChildren(new Option("Select a column…", ""));
+    for (const column of visible)
+      group.add(new Option(column.label, column.key));
+    if (!visible.some((column) => column.key === subtotalDraft.groupBy))
+      subtotalDraft.groupBy = "";
+    group.value = subtotalDraft.groupBy;
+    const calculations = element("subtotal-calculations");
+    calculations.replaceChildren();
+    for (const column of visible.filter(
+      (column) => column.numeric && column.key !== subtotalDraft.groupBy,
+    )) {
+      const row = document.createElement("div"),
+        label = document.createElement("label"),
+        select = document.createElement("select");
+      row.className = "subtotal-calculation";
+      select.dataset.key = column.key;
+      select.id = "subtotal-operation-" + columns.indexOf(column);
+      label.htmlFor = select.id;
+      label.textContent = column.label;
+      for (const [value, text] of [
+        ["", "No subtotal"],
+        ["sum", "Sum"],
+        ["avg", "Average"],
+        ["min", "Minimum"],
+        ["max", "Maximum"],
+      ])
+        select.add(new Option(text, value));
+      select.value =
+        subtotalDraft.calculations.find((item) => item.key === column.key)
+          ?.operation || "";
+      select.addEventListener("change", () => {
+        subtotalDraft.calculations = subtotalDraft.calculations.filter(
+          (item) => item.key !== column.key,
+        );
+        if (select.value)
+          subtotalDraft.calculations.push({
+            key: column.key,
+            operation: select.value,
+          });
+      });
+      row.append(label, select);
+      calculations.append(row);
+    }
+    if (!calculations.children.length) {
+      const message = document.createElement("p");
+      message.className = "column-help";
+      message.textContent =
+        "Show a numeric column other than the grouping column to calculate subtotals.";
+      calculations.append(message);
+    }
     updateControls();
+  }
+  element("include-subtotals").addEventListener("change", () => {
+    subtotalDraft.enabled = element("include-subtotals").checked;
+    renderSubtotals();
+  });
+  element("subtotal-group").addEventListener("change", () => {
+    subtotalDraft.groupBy = element("subtotal-group").value;
+    renderSubtotals();
+  });
+  function subtotalSettings() {
+    if (!subtotalDraft.enabled) return { enabled: false };
+    const calculations = [
+      ...element("subtotal-calculations").querySelectorAll("select"),
+    ]
+      .filter((select) => select.value)
+      .map((select) => ({ key: select.dataset.key, operation: select.value }));
+    if (!subtotalDraft.groupBy)
+      throw Error("Select a visible grouping column for subtotals.");
+    if (!calculations.length)
+      throw Error(
+        "Select a subtotal calculation for at least one numeric column.",
+      );
+    return { enabled: true, groupBy: subtotalDraft.groupBy, calculations };
   }
   async function loadColumns() {
     const current = ++generation,
@@ -94,6 +206,15 @@
         fields,
         initialConfig?.table === table ? initialConfig.columns : undefined,
       );
+      subtotalDraft =
+        initialConfig?.table === table
+          ? {
+              ...ReportSubtotals.copy(initialConfig.subtotals),
+              calculations: (initialConfig.subtotals?.calculations || []).map(
+                (item) => ({ ...item }),
+              ),
+            }
+          : { enabled: false, groupBy: "", calculations: [] };
       element("column-status").textContent = columns.length
         ? ""
         : "This table has no available columns.";
@@ -132,10 +253,12 @@
         color: element("color").value,
         orientation: document.querySelector('input[name="orientation"]:checked')
           ?.value,
+        subtotals: subtotalSettings(),
         columns: columns.map((column) => ({
           key: column.key,
           label: column.label,
           visible: column.visible,
+          format: column.format || "auto",
         })),
       };
       if (!PrintData.isConfig(config))
