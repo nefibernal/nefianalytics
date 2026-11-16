@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Download Tableau worksheet data as readable, paginated PDF reports with configurable columns, grouping, number formats, and subtotals.">
+  <title>PDF Report Download | Nefi Bernal</title>
+  <style>
+    :root {
+      --ink: #172b4d;
+      --muted: #526277;
+      --blue: #155eef;
+      --border: #dce3ed;
+      --pale: #f4f7fb;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font: 16px/1.65 system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background: white;
+    }
+    a { color: var(--blue); }
+    a:focus-visible {
+      outline: 3px solid #ffb400;
+      outline-offset: 5px;
+    }
+    .wrap { width: min(1080px, 90%); margin: auto; }
+    header {
+      padding: 22px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    header .wrap, footer .wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .brand { font-weight: 750; }
+    nav { display: flex; gap: 22px; flex-wrap: wrap; }
+    nav a { color: var(--muted); text-decoration: none; }
+    .hero { padding: 78px 0 64px; background: var(--pale); }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    .eyebrow {
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 750;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 12px 0 20px;
+      font-size: clamp(34px, 4.4vw, 54px);
+      line-height: 1.12;
+      letter-spacing: -.035em;
+    }
+    h2 { font-size: 28px; line-height: 1.25; margin: 0 0 22px; }
+    h3 { font-size: 18px; margin: 0 0 6px; }
+    p { margin: 0 0 18px; }
+    .lead { font-size: 19px; color: var(--muted); }
+    .button {
+      display: inline-block;
+      padding: 13px 22px;
+      border-radius: 8px;
+      color: white;
+      background: var(--blue);
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .button:hover { background: #104bc5; }
+    .note { font-size: 13px; color: var(--muted); margin-top: 12px; }
+    section { padding: 58px 0; border-bottom: 1px solid var(--border); }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 28px 42px;
+    }
+    .features p, li, .muted { color: var(--muted); }
+    ol { padding-left: 24px; }
+    li { padding: 0 0 17px 8px; }
+    li strong { color: var(--ink); }
+    .preview {
+      margin: 0;
+      padding: 26px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      box-shadow: 0 16px 42px #172b4d12;
+    }
+    .preview-title { font-size: 18px; margin-bottom: 3px; }
+    .preview-date { font-size: 11px; color: var(--muted); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 22px 0 12px;
+      font-size: 13px;
+    }
+    th { text-align: left; background: #dedede; font-weight: 500; }
+    th, td { padding: 9px 8px; border-bottom: 1px solid #ddd; }
+    td { vertical-align: top; }
+    th:last-child, td:last-child { text-align: right; }
+    .total { font-weight: 750; }
+    figcaption { font-size: 11px; color: var(--muted); }
+    details { padding: 17px 0; border-bottom: 1px solid var(--border); }
+    summary { cursor: pointer; font-weight: 700; }
+    details p { margin: 12px 0 0; color: var(--muted); }
+    .download-panel {
+      padding: 32px;
+      background: var(--pale);
+      border-radius: 12px;
+    }
+    code { overflow-wrap: anywhere; }
+    footer { padding: 28px 0; font-size: 14px; color: var(--muted); }
+    @media (max-width: 760px) {
+      .hero { padding: 44px 0; }
+      .hero-grid, .features { grid-template-columns: 1fr; }
+      .hero-grid { gap: 30px; }
+      section { padding: 38px 0; }
+      .preview { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <span class="brand">PDF Report Download</span>
+      <nav aria-label="Main navigation">
+        <a href="#features">Features</a>
+        <a href="#setup">Setup</a>
+        <a href="#download">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <div class="eyebrow">A dashboard extension for Tableau Cloud</div>
+          <h1>Turn your Tableau tables into readable PDF reports.</h1>
+          <p class="lead">
+            Give dashboard viewers a simple PDF download button.
+            Configure the report once, then export worksheet data
+            with grouping, subtotals, and repeated page headers.
+          </p>
+          <a class="button"
+             href="./Nefi_Print_Report_1_0_0.trex"
+             download>Download extension</a>
+          <p class="note">
+            Downloads a .trex installation file.
+            A Tableau Cloud administrator may need to approve the extension.
+          </p>
+        </div>
+
+        <figure class="preview">
+          <div class="preview-title">Production summary</div>
+          <div class="preview-date">Created: report generation date and time</div>
+          <table aria-label="Illustrative grouped report">
+            <thead>
+              <tr><th>Status</th><th>Team member</th><th>Items</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td rowspan="5"><strong>Complete</strong></td>
+                <td rowspan="2">Alex</td><td>8</td>
+              </tr>
+              <tr><td>4</td></tr>
+              <tr class="total"><td>Total Items</td><td>12</td></tr>
+              <tr><td>Jordan</td><td>6</td></tr>
+              <tr class="total"><td>Total Items</td><td>6</td></tr>
+            </tbody>
+          </table>
+          <figcaption>Illustrative layout using sample data.</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <section id="features">
+      <div class="wrap">
+        <h2>Configure the report for your table.</h2>
+        <div class="features">
+          <div>
+            <h3>Choose and arrange columns</h3>
+            <p>Select which columns to include, change their order,
+              and set number formatting for numeric fields.</p>
+          </div>
+          <div>
+            <h3>Group related rows</h3>
+            <p>Choose grouping columns in order. Repeated labels are
+              suppressed within each group and repeated on continued pages.</p>
+          </div>
+          <div>
+            <h3>Add subtotals</h3>
+            <p>Configure Sum, Average, Minimum, or Maximum calculations.
+              Subtotals are calculated from the exported report rows.</p>
+          </div>
+          <div>
+            <h3>Export paginated PDFs</h3>
+            <p>Choose portrait or landscape. Reports include repeated
+              column headers, page numbers, and a creation timestamp.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>How it works</h2>
+        <p>
+          The extension reads the selected worksheet’s current summary data
+          and creates a PDF in the viewer’s browser. It uses its own report
+          layout rather than Tableau’s native PDF export.
+        </p>
+        <p class="muted">
+          The export follows the worksheet’s filters and adapts when
+          hierarchy levels are expanded or collapsed, while retaining
+          the author’s saved PDF settings.
+        </p>
+        <p class="muted">
+          Report data is not uploaded to GitHub or an external
+          PDF-conversion service.
+        </p>
+      </div>
+    </section>
+
+    <section id="setup">
+      <div class="wrap">
+        <h2>Set up once. Download from the dashboard.</h2>
+        <ol>
+          <li>
+            <strong>Download the installation file.</strong><br>
+            Save the .trex file using the download button on this page.
+          </li>
+          <li>
+            <strong>Add the extension to your dashboard.</strong><br>
+            In Tableau authoring, add an Extension object, choose
+            Access Local Extensions, and select the downloaded file.
+          </li>
+          <li>
+            <strong>Configure and save.</strong><br>
+            Select the worksheet, PDF columns, grouping, optional subtotals,
+            background color, and report orientation. Save the configuration
+            and save or publish your workbook.
+          </li>
+          <li>
+            <strong>Download a report.</strong><br>
+            Viewers make their dashboard selections and click the PDF icon.
+            The browser or Tableau environment handles saving the file.
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <h2>Before you install</h2>
+        <details>
+          <summary>Does my Tableau administrator need to approve it?</summary>
+          <p>
+            For Tableau Cloud, a site administrator must allow this
+            network-enabled extension. The hosted extension URL is
+            <code>https://nefibernal.github.io/nefianalytics/print-report-v1/extension.html</code>.
+            Your organization’s extension policies apply.
+          </p>
+        </details>
+        <details>
+          <summary>Does it automatically open or print the PDF?</summary>
+          <p>
+            It requests a PDF download. Save-location prompts and whether
+            the downloaded PDF opens automatically depend on your browser
+            and environment settings. You can print the saved PDF from
+            your PDF viewer.
+          </p>
+        </details>
+        <details>
+          <summary>Will it reproduce every Tableau layout exactly?</summary>
+          <p>
+            No. The extension creates a configurable tabular report from
+            worksheet summary data. Test your worksheet’s formatting,
+            hierarchy, and calculations before sharing it with viewers.
+          </p>
+        </details>
+      </div>
+    </section>
+
+    <section id="download">
+      <div class="wrap">
+        <div class="download-panel">
+          <h2>Add PDF downloads to your dashboard.</h2>
+          <p>
+            Download the installation file and configure the extension
+            for your worksheet.
+          </p>
+          <a class="button"
+             href="./Nefi_Print_Report_1_0_0.trex"
+             download>Download extension (.trex)</a>
+          <p class="note">
+            The installation filename is retained for compatibility.
+            It does not indicate the running extension version.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Created by Nefi Bernal</span>
+      <a href="https://www.linkedin.com/in/nefi-bernal/"
+         target="_blank" rel="noopener noreferrer">Connect on LinkedIn</a>
+    </div>
+  </footer>
+</body>
+</html>
