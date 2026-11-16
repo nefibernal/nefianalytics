@@ -9,7 +9,7 @@
   let saved = null,
     busy = false,
     changes = 0;
-  const page = (name) => new URL(name + "?build=1.0.10", location.href).href;
+  const page = (name) => new URL(name + "?build=1.0.11", location.href).href;
   function paint() {
     button.innerHTML = saved
       ? downloadIcon + '<span class="icon-label" aria-hidden="true">PDF</span>'
@@ -87,11 +87,9 @@
           "The dashboard changed while the report was being prepared. Please download again.",
         );
       const arranged = ReportLayout.apply(data, configuration.columns);
-      const grouped = ReportGroups.apply(
-        arranged,
-        ReportGroups.keys(configuration),
-      );
-      const totaled = ReportSubtotals.apply(grouped, configuration.subtotals);
+      const current = ReportGroups.effective(configuration, arranged);
+      const grouped = ReportGroups.apply(arranged, current.grouping);
+      const totaled = ReportSubtotals.apply(grouped, current.subtotals);
       const report = {
         title: w.name,
         orientation: configuration.orientation,

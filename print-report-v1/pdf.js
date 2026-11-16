@@ -25,7 +25,7 @@
     doc.setFont("Report", "normal");
     doc.setProperties({
       title: report.title,
-      creator: "PDF Report Download 1.0.10",
+      creator: "PDF Report Download 1.0.11",
     });
     const width = doc.internal.pageSize.getWidth(),
       height = doc.internal.pageSize.getHeight();

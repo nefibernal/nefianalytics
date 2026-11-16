@@ -153,19 +153,52 @@
       }),
     };
   }
+  // Hierarchy drill changes can temporarily remove fields or regenerate their IDs.
+  // Match an unchanged name only when it identifies exactly one current field.
+  function resolveSaved(item, available) {
+    const exact = available.get(item.key);
+    if (exact) return exact;
+    if (!item.key.startsWith("field:")) return undefined;
+    let id, name;
+    try {
+      [id, name] = JSON.parse(item.key.slice(6));
+    } catch (_) {
+      return undefined;
+    }
+    if (id) {
+      const matches = [...available.values()].filter((field) => {
+        if (!field.key.startsWith("field:")) return false;
+        try {
+          return JSON.parse(field.key.slice(6))[0] === id;
+        } catch (_) {
+          return false;
+        }
+      });
+      if (matches.length === 1) return matches[0];
+    }
+    const matches = [...available.values()].filter(
+      (field) => field.label === name,
+    );
+    if (matches.length > 1)
+      throw Error(
+        "A saved column name matches multiple current fields. Review PDF columns in Configure.",
+      );
+    return matches[0];
+  }
+
   function reconcile(fields, saved) {
     const available = new Map(fields.map((field) => [field.key, field]));
     const ordered = [];
     for (const item of saved || []) {
-      if (!available.has(item.key)) continue;
+      const current = resolveSaved(item, available);
+      if (!current) continue;
       ordered.push({
-        ...available.get(item.key),
+        ...current,
+        key: item.key,
         visible: item.visible,
-        format: available.get(item.key).numeric
-          ? item.format || "auto"
-          : "auto",
+        format: current.numeric ? item.format || "auto" : "auto",
       });
-      available.delete(item.key);
+      available.delete(current.key);
     }
     return [...ordered, ...available.values()].map((item) => ({ ...item }));
   }
@@ -208,27 +241,17 @@
     );
     const ordered = [];
     for (const item of saved || []) {
-      const current = available.get(item.key);
-      if (!current) {
-        if (item.visible && !item.key.startsWith("measure:"))
-          throw Error(
-            "A configured PDF column is missing. Open Configure to review the table columns.",
-          );
-        // A measure can be absent under the current filters. Preserve its empty column.
-        if (item.visible)
-          ordered.push({
-            ...item,
-            index: -1,
-            numericUnknown: item.key.startsWith("measure:"),
-          });
-        continue;
-      }
+      const current = resolveSaved(item, available);
+      // A collapsed hierarchy is a valid current view, not a broken configuration.
+      // Keep saved settings intact; absent columns return when the hierarchy expands.
+      if (!current) continue;
       if (item.visible)
         ordered.push({
           ...current,
+          key: item.key,
           format: current.numeric ? item.format || "auto" : "auto",
         });
-      available.delete(item.key);
+      available.delete(current.key);
     }
     // Newly available columns are shown at the end until the author configures them.
     ordered.push(...available.values());

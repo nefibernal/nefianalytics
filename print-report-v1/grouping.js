@@ -70,5 +70,31 @@
       ),
     };
   }
-  root.ReportGroups = { keys, valid, identity, apply };
+  function effective(config, report) {
+    const requested = keys(config),
+      available = new Map(report.fields.map((field) => [field.key, field]));
+    const grouping = requested.filter((key) => available.has(key));
+    let subtotals = ReportSubtotals.copy(config.subtotals);
+    if (subtotals.enabled) {
+      const level = requested.indexOf(subtotals.groupBy);
+      const groupBy = requested
+        .slice(0, level + 1)
+        .filter((key) => available.has(key))
+        .at(-1);
+      const calculations = subtotals.calculations.filter((item) => {
+        const field = available.get(item.key);
+        return (
+          field &&
+          !grouping.includes(item.key) &&
+          (field.numeric || field.numericUnknown)
+        );
+      });
+      subtotals =
+        groupBy && calculations.length
+          ? { enabled: true, groupBy, calculations }
+          : { enabled: false };
+    }
+    return { grouping, subtotals };
+  }
+  root.ReportGroups = { keys, valid, identity, apply, effective };
 })(globalThis);
