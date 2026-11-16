@@ -34,6 +34,10 @@
     URL.revokeObjectURL(url);
   }
   function request(report) {
+    const createdAt = report.createdAt
+      ? new Date(report.createdAt)
+      : new Date();
+    report = { ...report, createdAt: createdAt.toISOString() };
     const doc = PrintPDF.build(report),
       blob = doc.output("blob");
     const url = URL.createObjectURL(blob),
@@ -44,7 +48,7 @@
       setTimeout(() => release(url), 1800000),
     );
     link.href = url;
-    link.download = filename(report.title);
+    link.download = filename(report.title, createdAt);
     link.hidden = true;
     document.body.appendChild(link);
     try {

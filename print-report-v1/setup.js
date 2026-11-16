@@ -8,15 +8,35 @@
   let columns = [],
     generation = 0,
     initialConfig = null;
+  let groupingDraft = [];
   let subtotalDraft = { enabled: false, groupBy: "", calculations: [] };
 
   function updateControls() {
     const disabled = !ready || saving || !canConfigure;
     for (const control of document.querySelectorAll("select, input"))
       control.disabled =
-        disabled || (loading && control.closest("#column-list") !== null);
+        disabled ||
+        (loading &&
+          control.closest(
+            "#column-list, #grouping-settings, #subtotal-settings",
+          ) !== null);
     element("save").disabled = disabled || loading || !columns.length;
     element("cancel").disabled = !ready || saving;
+    for (const control of element("grouping-settings").querySelectorAll(
+      "button",
+    ))
+      control.disabled =
+        disabled ||
+        loading ||
+        (control.id === "add-group" && !element("group-add").value);
+    [...element("grouping-list").children].forEach((row, index) => {
+      row.querySelector('[data-group-move="up"]').disabled =
+        disabled || loading || index === 0;
+      row.querySelector('[data-group-move="down"]').disabled =
+        disabled || loading || index === groupingDraft.length - 1;
+    });
+    element("include-subtotals").disabled =
+      disabled || loading || !groupingDraft.length;
     const rows = element("column-list").children;
     [...rows].forEach((row, index) => {
       row.querySelector('[data-move="up"]').disabled =
@@ -38,7 +58,7 @@
       checkbox.checked = column.visible;
       checkbox.addEventListener("change", () => {
         columns[index].visible = checkbox.checked;
-        renderSubtotals();
+        renderGrouping();
       });
       name.textContent = column.label;
       label.append(checkbox, name);
@@ -101,8 +121,83 @@
       }
       element("column-list").append(row);
     });
+    renderGrouping();
+  }
+  function renderGrouping() {
+    element("grouping-settings").hidden = !columns.length;
+    const visible = columns.filter((column) => column.visible);
+    groupingDraft = groupingDraft.filter((key) =>
+      visible.some((column) => column.key === key),
+    );
+    const list = element("grouping-list");
+    list.replaceChildren();
+    groupingDraft.forEach((key, index) => {
+      const row = document.createElement("div"),
+        text = document.createElement("span");
+      row.className = "grouping-row";
+      row.setAttribute("role", "listitem");
+      text.textContent =
+        index + 1 + ". " + visible.find((column) => column.key === key).label;
+      row.append(text);
+      for (const [direction, offset, symbol] of [
+        ["up", -1, "↑"],
+        ["down", 1, "↓"],
+      ]) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.dataset.groupMove = direction;
+        button.textContent = symbol;
+        button.setAttribute(
+          "aria-label",
+          "Move grouping column " + text.textContent + " " + direction,
+        );
+        button.addEventListener("click", () => {
+          if (saving || loading) return;
+          const destination = index + offset;
+          if (destination < 0 || destination >= groupingDraft.length) return;
+          [groupingDraft[index], groupingDraft[destination]] = [
+            groupingDraft[destination],
+            groupingDraft[index],
+          ];
+          renderGrouping();
+          list.children[destination]
+            .querySelector('[data-group-move="' + direction + '"]')
+            .focus();
+        });
+        row.append(button);
+      }
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "Remove";
+      remove.setAttribute(
+        "aria-label",
+        "Remove grouping column " + text.textContent,
+      );
+      remove.addEventListener("click", () => {
+        if (saving || loading) return;
+        groupingDraft.splice(index, 1);
+        renderGrouping();
+      });
+      row.append(remove);
+      list.append(row);
+    });
+    const add = element("group-add");
+    add.replaceChildren(new Option("Select a column…", ""));
+    for (const column of visible.filter(
+      (column) => !groupingDraft.includes(column.key),
+    ))
+      add.add(new Option(column.label, column.key));
+    if (!groupingDraft.length) subtotalDraft.enabled = false;
+    if (!groupingDraft.includes(subtotalDraft.groupBy))
+      subtotalDraft.groupBy = groupingDraft.at(-1) || "";
     renderSubtotals();
   }
+  element("group-add").addEventListener("change", updateControls);
+  element("add-group").addEventListener("click", () => {
+    if (saving || loading || !element("group-add").value) return;
+    groupingDraft.push(element("group-add").value);
+    renderGrouping();
+  });
   function renderSubtotals() {
     element("subtotal-settings").hidden = !columns.length;
     element("include-subtotals").checked = subtotalDraft.enabled;
@@ -110,15 +205,17 @@
     const visible = columns.filter((column) => column.visible);
     const group = element("subtotal-group");
     group.replaceChildren(new Option("Select a column…", ""));
-    for (const column of visible)
+    for (const key of groupingDraft) {
+      const column = visible.find((item) => item.key === key);
       group.add(new Option(column.label, column.key));
-    if (!visible.some((column) => column.key === subtotalDraft.groupBy))
+    }
+    if (!groupingDraft.includes(subtotalDraft.groupBy))
       subtotalDraft.groupBy = "";
     group.value = subtotalDraft.groupBy;
     const calculations = element("subtotal-calculations");
     calculations.replaceChildren();
     for (const column of visible.filter(
-      (column) => column.numeric && column.key !== subtotalDraft.groupBy,
+      (column) => column.numeric && !groupingDraft.includes(column.key),
     )) {
       const row = document.createElement("div"),
         label = document.createElement("label"),
@@ -156,13 +253,15 @@
       const message = document.createElement("p");
       message.className = "column-help";
       message.textContent =
-        "Show a numeric column other than the grouping column to calculate subtotals.";
+        "Show a numeric column that is not used for grouping to calculate subtotals.";
       calculations.append(message);
     }
     updateControls();
   }
   element("include-subtotals").addEventListener("change", () => {
     subtotalDraft.enabled = element("include-subtotals").checked;
+    if (subtotalDraft.enabled)
+      subtotalDraft.groupBy = groupingDraft.at(-1) || "";
     renderSubtotals();
   });
   element("subtotal-group").addEventListener("change", () => {
@@ -215,6 +314,8 @@
               ),
             }
           : { enabled: false, groupBy: "", calculations: [] };
+      groupingDraft =
+        initialConfig?.table === table ? ReportGroups.keys(initialConfig) : [];
       element("column-status").textContent = columns.length
         ? ""
         : "This table has no available columns.";
@@ -254,6 +355,7 @@
         orientation: document.querySelector('input[name="orientation"]:checked')
           ?.value,
         subtotals: subtotalSettings(),
+        grouping: [...groupingDraft],
         columns: columns.map((column) => ({
           key: column.key,
           label: column.label,

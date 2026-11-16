@@ -27,6 +27,13 @@
           new Set(value.columns.map((column) => column.key)).size ===
             value.columns.length &&
           value.columns.some((column) => column.visible))) &&
+      ReportGroups.valid(value.grouping, value.columns) &&
+      (!value.subtotals?.enabled ||
+        value.grouping === undefined ||
+        (value.grouping.includes(value.subtotals.groupBy) &&
+          value.subtotals.calculations?.every(
+            (item) => !value.grouping.includes(item.key),
+          ))) &&
       ReportSubtotals.valid(value.subtotals, value.columns)
     );
   }
@@ -40,6 +47,7 @@
             color: value.color,
             orientation: value.orientation,
             subtotals: ReportSubtotals.copy(value.subtotals),
+            grouping: ReportGroups.keys(value),
             ...(value.columns
               ? { columns: value.columns.map((column) => ({ ...column })) }
               : {}),
@@ -74,6 +82,7 @@
         color: value.color,
         orientation: value.orientation,
         subtotals: ReportSubtotals.copy(value.subtotals),
+        grouping: ReportGroups.keys(value),
         ...(value.columns
           ? {
               columns: value.columns.map((column) => ({

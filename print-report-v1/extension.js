@@ -9,7 +9,7 @@
   let saved = null,
     busy = false,
     changes = 0;
-  const page = (name) => new URL(name + "?build=1.0.9", location.href).href;
+  const page = (name) => new URL(name + "?build=1.0.10", location.href).href;
   function paint() {
     button.innerHTML = saved
       ? downloadIcon + '<span class="icon-label" aria-hidden="true">PDF</span>'
@@ -87,13 +87,16 @@
           "The dashboard changed while the report was being prepared. Please download again.",
         );
       const arranged = ReportLayout.apply(data, configuration.columns);
-      const totaled = ReportSubtotals.apply(arranged, configuration.subtotals);
+      const grouped = ReportGroups.apply(
+        arranged,
+        ReportGroups.keys(configuration),
+      );
+      const totaled = ReportSubtotals.apply(grouped, configuration.subtotals);
       const report = {
         title: w.name,
         orientation: configuration.orientation,
-        columns: totaled.columns,
-        rows: totaled.rows,
-        subtotalRows: totaled.subtotalRows,
+        ...totaled,
+        createdAt: new Date().toISOString(),
       };
       notice.textContent = "Creating PDF…";
       // Paint the status before synchronous PDF generation.

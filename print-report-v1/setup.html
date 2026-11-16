@@ -4,12 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Set up PDF report</title>
-    <link rel="stylesheet" href="ui.css?v=1.0.9" />
-    <script src="assets/tableau.extensions.js?v=1.0.9" defer></script>
-    <script src="subtotals.js?v=1.0.9" defer></script>
-    <script src="data.js?v=1.0.9" defer></script>
-    <script src="layout.js?v=1.0.9" defer></script>
-    <script src="setup.js?v=1.0.9" defer></script>
+    <link rel="stylesheet" href="ui.css?v=1.0.10" />
+    <script src="assets/tableau.extensions.js?v=1.0.10" defer></script>
+    <script src="grouping.js?v=1.0.10" defer></script>
+    <script src="subtotals.js?v=1.0.10" defer></script>
+    <script src="data.js?v=1.0.10" defer></script>
+    <script src="layout.js?v=1.0.10" defer></script>
+    <script src="setup.js?v=1.0.10" defer></script>
   </head>
   <body>
     <main class="settings">
@@ -32,6 +33,26 @@
           <p id="column-status" role="status"></p>
           <div id="column-list" role="list"></div>
         </section>
+        <section id="grouping-settings" hidden>
+          <h2>Grouping columns</h2>
+          <p class="column-help">
+            Add grouping columns in order, from outermost to innermost. For
+            example: Scan Status, then User Name. Labels appear once within each
+            group and repeat on continued pages. With no grouping columns, every
+            row shows all values.
+          </p>
+          <div id="grouping-list" role="list"></div>
+          <label for="group-add">Add a grouping column</label>
+          <select id="group-add">
+            <option value="">Select a column…</option>
+          </select>
+          <button type="button" id="add-group">Add grouping column</button>
+          <p class="column-help">
+            PDF column order is controlled separately above. First-column values
+            and subtotal rows print in bold. The report creation date and time
+            is always shown under the title.
+          </p>
+        </section>
         <section id="subtotal-settings" hidden>
           <h2>Subtotals</h2>
           <label class="subtotal-toggle"
@@ -39,7 +60,7 @@
             subtotals</label
           >
           <div id="subtotal-options" hidden>
-            <label for="subtotal-group">Group by</label>
+            <label for="subtotal-group">Subtotal after each</label>
             <select id="subtotal-group">
               <option value="">Select a column…</option>
             </select>
@@ -48,10 +69,11 @@
             </p>
             <div id="subtotal-calculations"></div>
             <p class="column-help">
-              Rows are grouped in first-seen order, with a subtotal after each
-              group. Calculations use report rows and skip missing numbers.
-              Average is an unweighted average. Subtotals use the column's
-              number format; automatic format shows up to six decimals.
+              A subtotal is added after each selected group within its parent
+              groups. Group order follows the first appearance in the table.
+              Calculations use report rows and skip missing numbers. Average is
+              an unweighted average. Subtotals use the column's number format;
+              automatic format shows up to six decimals.
             </p>
           </div>
         </section>
@@ -88,7 +110,7 @@
         </div>
       </form>
       <footer class="setup-footer">
-        <p class="build">PDF Report Download 1.0.9</p>
+        <p class="build">PDF Report Download 1.0.10</p>
         <p class="creator">
           Created by Nefi Bernal ·
           <a
