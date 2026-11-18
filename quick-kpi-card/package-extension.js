@@ -1,0 +1,1 @@
+const {execFileSync}=require('child_process');execFileSync('zip',['-r','Quick-KPI-Card-1.0.0.zip','README.md','package.json','server.js','index.html','config.html','src','manifest'],{stdio:'inherit'});
