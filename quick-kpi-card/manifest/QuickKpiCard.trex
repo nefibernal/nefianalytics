@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
-  <worksheet-extension id="com.sme.quick-kpi-card" extension-version="1.0.0">
-    <default-locale>en_US</default-locale>
-    <name resource-id="name"/>
-    <description>Configurable two-metric KPI card with optional icons and independent typography.</description>
-    <author name="Nefi Bernal" organization="SME Industries"/>
-    <min-api-version>1.12</min-api-version>
-    <source-location><url>https://nefibernal.github.io/nefianalytics/quick-kpi-card/index.html</url></source-location>
-    <permissions><permission>summary data</permission></permissions>
-    <encoding id="metric-1"><display-name resource-id="metric1">Metric 1</display-name><data-spec><data-type>numeric</data-type></data-spec><role-spec><role-type>measure</role-type></role-spec><fields max-count="1"/><encoding-icon token="letter-m"/></encoding>
-    <encoding id="metric-2"><display-name resource-id="metric2">Metric 2</display-name><data-spec><data-type>numeric</data-type></data-spec><role-spec><role-type>measure</role-type></role-spec><fields max-count="1"/><encoding-icon token="letter-m"/></encoding>
-  </worksheet-extension>
-  <resources><resource id="name"><text locale="en_US">Quick KPI Card</text></resource><resource id="metric1"><text locale="en_US">Metric 1</text></resource><resource id="metric2"><text locale="en_US">Metric 2</text></resource></resources>
+  <viz-extension id="com.nefianalytics.quick-kpi-card" version="1.0.1">
+    <name resource-id="name" />
+    <description>Quick KPI Card displays two aggregated measures in a configurable KPI card.</description>
+    <author name="Nefi Bernal" email="nefibernal@users.noreply.github.com" website="https://github.com/nefibernal/nefianalytics" />
+    <min-api-version>1.10</min-api-version>
+    <source-location>
+      <url>https://nefibernal.github.io/nefianalytics/quick-kpi-card/index.html</url>
+    </source-location>
+    <encoding id="metric1" name="Metric 1" type="quantitative" role="continuous-measure" />
+    <encoding id="metric2" name="Metric 2" type="quantitative" role="continuous-measure" />
+  </viz-extension>
+  <resources>
+    <resource id="name"><text locale="en_US">Quick KPI Card</text></resource>
+  </resources>
 </manifest>
