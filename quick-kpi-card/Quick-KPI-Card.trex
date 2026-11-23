@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
+  <worksheet-extension id="io.github.nefibernal.quick-kpi-card" extension-version="1.0.1">
+    <default-locale>en_US</default-locale>
+    <name resource-id="name"/>
+    <description>A two-metric KPI card with an optional image and adjustable typography.</description>
+    <author name="Nefi Bernal" website="https://nefibernal.github.io/nefianalytics/"/>
+    <min-api-version>1.11</min-api-version>
+    <source-location>
+      <url>http://localhost:8765/index.html</url>
+    </source-location>
+    <context-menu>
+      <configure-context-menu-item/>
+    </context-menu>
+    <encoding id="primary">
+      <display-name>Primary Metric</display-name>
+      <role-spec>
+        <role-type>continuous-measure</role-type>
+        <role-type>discrete-measure</role-type>
+      </role-spec>
+      <fields max-count="1"/>
+      <tooltip>Choose the primary measure. Use the measure pill menu to set aggregation.</tooltip>
+    </encoding>
+    <encoding id="secondary">
+      <display-name>Secondary Metric</display-name>
+      <role-spec>
+        <role-type>continuous-measure</role-type>
+        <role-type>discrete-measure</role-type>
+      </role-spec>
+      <fields max-count="1"/>
+      <tooltip>Choose the secondary measure. Use the measure pill menu to set aggregation.</tooltip>
+    </encoding>
+  </worksheet-extension>
+  <resources>
+    <resource id="name">
+      <text locale="en_US">Quick KPI Card</text>
+    </resource>
+  </resources>
+</manifest>
