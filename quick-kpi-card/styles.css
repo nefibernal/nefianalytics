@@ -12,7 +12,15 @@ button, input, select { font: inherit; }
 button, summary, input[type="color"] { cursor: pointer; }
 :focus-visible { outline: 2px solid #126eaa; outline-offset: 2px; }
 
-.worksheet { background: transparent; }
+.worksheet-document, .worksheet { height: 100%; overflow: hidden; }
+.worksheet { position: relative; background: transparent; }
+.worksheet-content {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  transform-origin: top center;
+}
 .kpi-card { width: 100%; min-width: 0; }
 
 .kpi-header {

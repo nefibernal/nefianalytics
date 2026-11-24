@@ -2,14 +2,36 @@ import { DEFAULTS, SAMPLE_METRICS, SETTINGS_KEY, SLOTS as slots, readSettings, r
 
 const container = document.querySelector('#card');
 const status = document.querySelector('#status');
+const worksheetContent = document.querySelector('.worksheet-content');
 let config = DEFAULTS;
 let currentMetrics = {};
+let fitFrame;
+
+function scheduleFit() {
+  if (fitFrame !== undefined) return;
+  fitFrame = requestAnimationFrame(() => {
+    fitFrame = undefined;
+    const availableHeight = document.documentElement.clientHeight;
+    const contentHeight = parseFloat(getComputedStyle(worksheetContent).height);
+    const scale = availableHeight > 0 && contentHeight > availableHeight
+      ? availableHeight / contentHeight : 1;
+    worksheetContent.style.transform = scale < 1 ? `scale(${scale})` : '';
+  });
+}
+
+window.addEventListener('resize', scheduleFit);
+if (typeof ResizeObserver === 'function') {
+  const fitObserver = new ResizeObserver(scheduleFit);
+  fitObserver.observe(worksheetContent);
+}
+scheduleFit();
 
 function show(message, metrics = []) {
   status.textContent = message;
   status.hidden = !message;
   currentMetrics = Object.fromEntries(slots.map((slot, index) => [slot, metrics[index]]));
   renderCard(container, config, currentMetrics);
+  scheduleFit();
 }
 
 function reportError(stage, error) {
@@ -27,6 +49,7 @@ async function connect() {
     config = readSettings(sessionStorage);
     renderCard(container, config, SAMPLE_METRICS);
     status.textContent = 'Sample data. Open this extension in Tableau to use live measures.';
+    scheduleFit();
     return;
   }
 
@@ -54,6 +77,7 @@ async function connect() {
       if (!result.saved) return;
       config = readSettings({ get: key => key === SETTINGS_KEY ? result.settings : undefined });
       renderCard(container, config, currentMetrics);
+      scheduleFit();
     } catch (error) {
       if (error.errorCode !== ErrorCodes.DialogClosedByUser) {
         const detail = error.errorCode ?? error.message;
