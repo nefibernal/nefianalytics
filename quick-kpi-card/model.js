@@ -25,7 +25,9 @@ const tableauFontWeights = {
   'Tableau Semibold': '600'
 };
 
-const textDefaults = { font: 'Tableau Medium', size: 14, color: '#000000' };
+const textDefaults = {
+  font: 'Tableau Medium', size: 14, color: '#000000', bold: false, italic: false, underline: false
+};
 const secondaryTextDefaults = { ...textDefaults, size: 10 };
 const metricDefaults = {
   alignment: 'center',
@@ -221,10 +223,20 @@ function trimImagePadding(image) {
   return canvas.toDataURL();
 }
 
+export function applyFontFamily(element, font) {
+  const name = font || textDefaults.font;
+  const known = Object.prototype.hasOwnProperty.call(FONTS, name);
+  const escaped = name.replace(/["\\]/g, '\\$&');
+  element.style.fontFamily = known ? FONTS[name] : `"${escaped}", "Segoe UI", Arial, sans-serif`;
+  element.style.fontWeight = Object.prototype.hasOwnProperty.call(tableauFontWeights, name)
+    ? tableauFontWeights[name] : '';
+}
+
 function styleText(element, style) {
-  const font = FONTS[style.font] ? style.font : textDefaults.font;
-  element.style.fontFamily = FONTS[font];
+  applyFontFamily(element, style.font);
   element.style.fontSize = `${style.size}pt`;
   element.style.color = style.color;
-  element.style.fontWeight = tableauFontWeights[font] ?? '';
+  if (style.bold) element.style.fontWeight = '700';
+  if (style.italic) element.style.fontStyle = 'italic';
+  if (style.underline) element.style.textDecoration = 'underline';
 }

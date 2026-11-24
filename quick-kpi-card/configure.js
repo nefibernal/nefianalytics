@@ -1,6 +1,6 @@
 import {
   ALIGNMENTS, FONTS, LABEL_POSITIONS, SAMPLE_METRICS,
-  SETTINGS_KEY, readSettings, renderCard
+  SETTINGS_KEY, applyFontFamily, readSettings, renderCard
 } from './model.js';
 
 const form = document.querySelector('#settings');
@@ -15,6 +15,11 @@ const acceptedImageTypes = ['image/png', 'image/jpeg', 'image/webp'];
 const maxImageBytes = 5 * 1024 * 1024;
 const maxImageSettingLength = 16 * 1024;
 const maxImageEdge = 96;
+const fontFamilies = [
+  ...Object.keys(FONTS), 'Aptos', 'Arial Black', 'Calibri', 'Cambria', 'Candara',
+  'Century Gothic', 'Consolas', 'Garamond', 'Helvetica', 'Tahoma',
+  'Times New Roman', 'Trebuchet MS', 'Tw Cen MT', 'Yu Gothic UI'
+].sort((a, b) => a.localeCompare(b));
 
 // Tableau Classic 10, with neutral choices for text and backgrounds.
 const colors = [
@@ -56,6 +61,12 @@ async function run() {
   const secondary = section('Secondary Metric');
   addMetricControls(secondary, config.secondary, metrics.secondary?.label);
   addControl(secondary, config.secondary, 'labelPosition', 'Label Placement', { choices: LABEL_POSITIONS });
+
+  document.addEventListener('click', event => {
+    for (const picker of sections.querySelectorAll('.font-picker[open], .compact-color details[open]')) {
+      if (!picker.contains(event.target)) picker.open = false;
+    }
+  });
 
   const image = section('Image');
   addControl(image, config.image, 'side', 'Display Side', { choices: ['left', 'right'] });
@@ -176,10 +187,124 @@ function addMetricControls(grid, metric, measureName = 'Measure name') {
 }
 
 function addTypography(grid, style, name) {
-  const prefix = name === 'Title' ? '' : `${name} `;
-  addControl(grid, style, 'font', `${name} Font`, { choices: Object.keys(FONTS) });
-  addControl(grid, style, 'size', `${prefix}Font Size (pt)`, { min: 6, max: 144 });
-  addColor(grid, style, 'color', `${prefix}Font Color`);
+  const row = document.createElement('div');
+  row.className = 'typography-row';
+  row.setAttribute('role', 'group');
+  row.setAttribute('aria-label', `${name} typography`);
+  addFontPicker(row, style, `${name} Font`);
+  const size = addControl(row, style, 'size', 'Font Size', { min: 6, max: 144 });
+  size.setAttribute('aria-label', `${name} Font Size`);
+  addColor(row, style, 'color', 'Font Color', { compact: true, accessibleName: `${name} Font Color` });
+
+  const toggles = document.createElement('div');
+  toggles.className = 'font-toggles';
+  for (const [key, letter] of [['bold', 'B'], ['italic', 'I'], ['underline', 'U']]) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `font-toggle font-toggle-${key}`;
+    button.textContent = letter;
+    button.title = key[0].toUpperCase() + key.slice(1);
+    button.setAttribute('aria-label', `${name} ${button.title}`);
+    button.setAttribute('aria-pressed', String(style[key] === true));
+    button.addEventListener('click', () => {
+      style[key] = !style[key];
+      button.setAttribute('aria-pressed', String(style[key]));
+      form.dispatchEvent(new Event('input'));
+    });
+    toggles.append(button);
+  }
+  row.append(toggles);
+  grid.append(row);
+}
+
+function addFontPicker(row, style, title) {
+  const group = document.createElement('div');
+  group.className = 'font-control';
+  const name = document.createElement('span');
+  name.textContent = title;
+  const picker = document.createElement('details');
+  picker.className = 'font-picker';
+  const summary = document.createElement('summary');
+  const selected = document.createElement('span');
+  summary.append(selected);
+
+  const panel = document.createElement('div');
+  panel.className = 'font-panel';
+  const search = document.createElement('input');
+  search.type = 'search';
+  search.maxLength = 120;
+  search.placeholder = 'Find a font';
+  search.setAttribute('aria-label', `Find ${title.toLowerCase()}`);
+  const list = document.createElement('div');
+  list.className = 'font-options';
+
+  function updateSelected() {
+    selected.textContent = style.font;
+    summary.setAttribute('aria-label', `${title}: ${style.font}`);
+    applyFontFamily(selected, style.font);
+  }
+
+  function choose(font) {
+    style.font = font;
+    updateSelected();
+    picker.open = false;
+    summary.focus();
+    form.dispatchEvent(new Event('input'));
+  }
+
+  function updateList() {
+    const query = search.value.trim().toLowerCase();
+    const matches = fontFamilies.filter(name => name.toLowerCase().includes(query));
+    list.textContent = '';
+    for (const font of matches) {
+      const option = document.createElement('button');
+      option.type = 'button';
+      option.textContent = font;
+      option.setAttribute('aria-pressed', String(font === style.font));
+      applyFontFamily(option, font);
+      option.addEventListener('click', () => choose(font));
+      list.append(option);
+    }
+    if (!matches.length) list.textContent = 'No matching fonts.';
+  }
+
+  picker.addEventListener('toggle', () => {
+    if (!picker.open) return;
+    search.value = '';
+    updateList();
+    search.focus();
+  });
+  search.addEventListener('input', event => {
+    event.stopPropagation();
+    updateList();
+  });
+  search.addEventListener('keydown', event => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      list.querySelector('button')?.click();
+    } else if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      list.querySelector('button')?.focus();
+    }
+  });
+  list.addEventListener('keydown', event => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    const next = event.key === 'ArrowDown' ? event.target.nextElementSibling : event.target.previousElementSibling;
+    (next ?? search).focus();
+  });
+  picker.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || !picker.open) return;
+    event.preventDefault();
+    event.stopPropagation();
+    picker.open = false;
+    summary.focus();
+  });
+  panel.append(search, list);
+  picker.append(summary, panel);
+  group.append(name, picker);
+  row.append(group);
+  updateSelected();
 }
 
 function addControl(grid, record, key, title, options = {}) {
@@ -210,20 +335,23 @@ function addControl(grid, record, key, title, options = {}) {
   });
   label.append(input);
   grid.append(label);
+  return input;
 }
 
-function addColor(grid, record, key, title) {
+function addColor(grid, record, key, title, { compact = false, accessibleName = title } = {}) {
   const group = document.createElement('div');
   group.className = 'color-control';
+  if (compact) group.classList.add('compact-color');
   const name = document.createElement('span');
   name.textContent = title;
   const picker = document.createElement('details');
   const summary = document.createElement('summary');
-  summary.setAttribute('aria-label', title);
+  summary.setAttribute('aria-label', accessibleName);
   const swatch = document.createElement('span');
   swatch.className = 'current-swatch';
   const hex = document.createElement('span');
-  summary.append(swatch, hex);
+  summary.append(swatch);
+  if (!compact) summary.append(hex);
   const panel = document.createElement('div');
   panel.className = 'color-panel';
   const palette = document.createElement('div');
@@ -239,6 +367,10 @@ function addColor(grid, record, key, title) {
     custom.value = color;
     swatch.style.backgroundColor = color;
     hex.textContent = color.toUpperCase();
+    if (compact) {
+      summary.title = hex.textContent;
+      summary.setAttribute('aria-label', `${accessibleName}: ${hex.textContent}`);
+    }
   }
 
   for (const [colorName, color] of colors) {
