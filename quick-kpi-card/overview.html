@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quick KPI Card for Tableau | Nefi Analytics</title>
+  <meta name="description" content="Build a polished Tableau KPI card in seconds. Bring your measures, labels, header, and optional image together in one viz extension.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Quick KPI Card for Tableau">
+  <meta property="og:description" content="Build a polished Tableau KPI card in seconds. Bring your metrics, labels, and optional image together in one card.">
+  <meta property="og:url" content="https://nefibernal.github.io/nefianalytics/quick-kpi-card/overview.html">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f4f7fb;
+      --white: #fff;
+      --ink: #172943;
+      --muted: #455975;
+      --line: #dce5f0;
+      --blue: #5577a6;
+      --deep-blue: #294c7c;
+      --pale-blue: #eaf0f8;
+      font: 100%/1.55 "Segoe UI", Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--white); }
+    a { color: var(--deep-blue); text-underline-offset: .2em; }
+    a:focus-visible, input:focus-visible + span, summary:focus-visible { outline: 3px solid #325f9c; outline-offset: 4px; }
+    [hidden] { display: none !important; }
+    h1, h2, h3, p { margin: 0; }
+    h1, h2, h3 { line-height: 1.12; }
+    .wrap { width: min(1120px, calc(100% - 48px)); margin-inline: auto; }
+    .masthead { border-bottom: 1px solid var(--line); background: var(--white); }
+    .masthead .wrap { min-height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+    .brand { color: var(--ink); text-decoration: none; font-weight: 700; letter-spacing: -.025em; display: inline-flex; gap: 11px; align-items: center; }
+    .brand-mark { display: inline-block; width: 22px; height: 16px; border-radius: 3px; border: 2px solid var(--deep-blue); border-top-width: 6px; }
+    .nav-link { font-size: .9375rem; font-weight: 600; white-space: nowrap; }
+    .hero { background: var(--paper); border-bottom: 1px solid var(--line); }
+    .hero-grid { display: grid; grid-template-columns: 1.15fr 1fr; align-items: center; gap: clamp(30px, 7vw, 90px); padding-block: clamp(48px, 8vw, 96px); }
+    .product { color: var(--deep-blue); font-weight: 700; margin-bottom: 15px; }
+    h1 { font-size: clamp(2.5rem, 6vw, 5rem); letter-spacing: -.07em; max-width: 10.5ch; }
+    .hero-copy p:not(.product) { margin-top: 23px; max-width: 44ch; font-size: clamp(1.0625rem, 2vw, 1.18rem); color: var(--muted); }
+    .actions { margin-top: 27px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; }
+    .button { display: inline-block; background: var(--deep-blue); color: var(--white); border: 1px solid var(--deep-blue); border-radius: 8px; padding: 11px 17px; font-weight: 650; text-decoration: none; }
+    .button:hover { background: #19365e; }
+    .text-action { font-weight: 650; }
+    .demo { margin: 0; min-width: 0; padding: clamp(15px, 3vw, 27px); border: 1px solid #d2e0f2; border-radius: 18px; background: var(--pale-blue); }
+    .sample-title { display: block; margin-bottom: 12px; color: var(--deep-blue); font-size: .9375rem; font-weight: 650; }
+    .sample-card { border: 1px solid #c8d7e9; background: white; border-radius: 11px; overflow: hidden; }
+    .sample-header { background: var(--blue); color: white; padding: 9px 14px; font-size: 1.125rem; font-weight: 650; text-align: center; }
+    .sample-main { min-height: 122px; display: flex; justify-content: center; align-items: center; gap: 18px; padding: 18px 10px; text-align: center; }
+    .sample-icon { display: grid; place-items: center; width: min(20%, 53px); flex: 0 0 min(20%, 53px); aspect-ratio: 1; border: 1px solid #dbe6f4; border-radius: 11px; background: #eff4fb; }
+    .sample-icon img { display: block; width: 76%; height: auto; }
+    .sample-number { font-size: clamp(1.625rem, 4.3vw, 2.5rem); font-weight: 700; letter-spacing: -.045em; line-height: 1.12; font-variant-numeric: tabular-nums; }
+    .sample-label { margin-top: 5px; font-size: .9375rem; color: var(--muted); }
+    .sample-secondary { padding: 10px; text-align: center; background: #f1f3f6; color: var(--muted); font-size: .9375rem; }
+    .sample-secondary strong { color: var(--ink); margin-right: .35em; }
+    .demo-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+    .demo-controls label { position: relative; }
+    .demo-controls input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    .demo-controls span { display: inline-flex; align-items: center; gap: 7px; min-height: 39px; padding: 6px 10px; border: 1px solid #b4c9e3; border-radius: 7px; color: var(--deep-blue); background: #f8fbff; cursor: pointer; font-size: .875rem; font-weight: 650; }
+    .demo-controls span::before { content: ""; width: 13px; height: 13px; border: 1px solid currentColor; border-radius: 3px; }
+    .demo-controls input:checked + span { color: #fff; background: var(--deep-blue); border-color: var(--deep-blue); }
+    .demo-controls input:checked + span::before { background: currentColor; box-shadow: inset 0 0 0 2px var(--deep-blue); }
+    .section { padding-block: clamp(45px, 7vw, 78px); }
+    .section h2 { font-size: clamp(1.9rem, 4vw, 3.15rem); letter-spacing: -.05em; }
+    .features { margin-top: 27px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 40px; }
+    .feature { border-top: 1px solid var(--line); padding-block: 20px; }
+    .feature h3 { font-size: 1.18rem; letter-spacing: -.02em; }
+    .feature p { color: var(--muted); margin-top: 7px; max-width: 52ch; }
+    .setup { background: var(--paper); border-block: 1px solid var(--line); }
+    .setup-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 28px 60px; }
+    .steps { margin: 0; padding-left: 1.4rem; }
+    .steps li { margin-bottom: 11px; padding-left: .25rem; }
+    .steps li::marker { color: var(--deep-blue); font-weight: 700; }
+    details { margin-top: 18px; color: var(--muted); }
+    summary { cursor: pointer; color: var(--deep-blue); font-weight: 650; }
+    details p { margin-top: 8px; }
+    .url { display: block; overflow-wrap: anywhere; margin-top: 8px; font-size: .9375rem; }
+    .footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 22px; padding-block: 25px; color: var(--muted); font-size: .9375rem; }
+    @media (max-width: 780px) {
+      .hero-grid, .setup-grid { grid-template-columns: 1fr; }
+      .demo { max-width: 540px; }
+      h1 { max-width: 13ch; }
+    }
+    @media (max-width: 480px) {
+      .wrap { width: calc(100% - 32px); }
+      .masthead .wrap { min-height: 60px; }
+      .features { grid-template-columns: 1fr; }
+      .nav-link { font-size: .875rem; }
+      .sample-main { min-height: 99px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="wrap">
+      <a class="brand" href="https://nefibernal.github.io/nefianalytics/"><span class="brand-mark" aria-hidden="true"></span>Nefi Analytics</a>
+      <a class="nav-link" href="https://nefibernal.github.io/nefianalytics/print-report-v1/">Print Extension</a>
+    </div>
+  </header>
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="product">Quick KPI Card for Tableau</p>
+          <h1 id="hero-title">Build polished KPI cards in seconds.</h1>
+          <p>Bring your metrics, labels, header, and optional image together in one Tableau card. Add it to your dashboard in a few clicks and spend less time aligning floating objects or arranging layout containers.</p>
+          <div class="actions">
+            <a class="button" href="https://nefibernal.github.io/nefianalytics/quick-kpi-card/Quick-KPI-Card.trex" download>Download Tableau extension</a>
+            <a class="text-action" href="#setup">Setup instructions</a>
+          </div>
+        </div>
+        <figure class="demo">
+          <figcaption class="sample-title">Try a sample KPI card</figcaption>
+          <div class="sample-card">
+            <div class="sample-header">In Fabrication</div>
+            <div class="sample-main">
+              <span class="sample-icon" data-part="image" aria-hidden="true"><img alt="" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAYAAADimHc4AAACHklEQVR4nO3dv00zQRCG8b0TmTNnLokaaACJjIwKyMgs0QA1UAhIlEBGRgyRLf+5XXbXM/Ny9vOLzYHmuVmL7/OJIRn4/Pr+sbjO3KyWi+HUa3Rf4FKHntMbo/mLGHxZa4jqFzP4NrUhxpoXMfx2tTMrVmLwNkrbkN0Ahm+nNMvJAAzfXm6mVe8B8HMUgLvfz9Rsx79eAFuHM+YIEtsG4O6PsztrNkBsTIm7X2EzczZAjABiA8ePFhsgRgAxAogRQIwAYlceF71/fPa4bIinh9vQ7+eyAR/vbx6XDRF987gdQUSow3tARlQE1wBz3oKUYiK4bwARykKOICLk8R5QyStCWIC5b0FKPhFcfhHLOYcI1jiCxAggRgAxAogRQGwW/yl/fXPX/bWvL2vDn8QeGyBGADECiBFAjABiBBAjgBgBxAggRgAxAogRQIwAYgQQI4AYAcQIIEYAMQKIEUCMAGIEECOAmMvngk75HM9/Z/05IzZAjABiBBAjgBgBxAggRgAxAoiFPqY6Z14PerABFTyfsmEDCiIeb2IDMqKeLWMDDkQ/1DeLpyTPGUeQGAHERos/yYo+q+ViYAPECCA2pmTzl6HRZjNzNkBsG4AtiLM7azZAbC8AW+DvcMZHG0AEP1Oz5QgSmwzAFtjLzTS7AUSwU5pl1ZD5J+s+NTdx1XsA29CudmbNg2Ubylpv1u47mxD7ek8Jk6PlUmNYHM2/OEGc/3in/KwAAAAASUVORK5CYII="></span>
+              <div><p class="sample-number">25,196</p><p class="sample-label">Main marks</p></div>
+            </div>
+            <p class="sample-secondary" data-part="second"><strong>26,662,776</strong> Weight (lb)</p>
+          </div>
+          <div class="demo-controls" aria-label="Sample card options" role="group">
+            <label><input type="checkbox" data-toggle="second" checked><span>Second metric</span></label>
+            <label><input type="checkbox" data-toggle="image" checked><span>Image</span></label>
+          </div>
+        </figure>
+      </div>
+    </section>
+
+    <section class="wrap section" aria-labelledby="features-title">
+      <h2 id="features-title">Make the card fit your dashboard</h2>
+      <div class="features">
+        <article class="feature">
+          <h3>Lead with the number that matters</h3>
+          <p>Use the <strong>1st Metric</strong> on its own or add a <strong>2nd Metric</strong> for context, like total weight alongside your piece count.</p>
+        </article>
+        <article class="feature">
+          <h3>Control the visual hierarchy</h3>
+          <p>Choose fonts, sizes, colors, and alignment for your metrics and labels. Move the second metric’s label above, below, left, or right of its value.</p>
+        </article>
+        <article class="feature">
+          <h3>Add an image where it helps</h3>
+          <p>Place an optional logo or icon on either side of the primary metric. The metric uses the full row when there’s no image.</p>
+        </article>
+        <article class="feature">
+          <h3>Use a title or a slim accent bar</h3>
+          <p>Customize the header’s text and background. For a slim accent bar, set the height to 8 px and match the text color to the background.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="setup section" id="setup" aria-labelledby="setup-title">
+      <div class="wrap setup-grid">
+        <div>
+          <h2 id="setup-title">Create your first card</h2>
+          <div class="actions">
+            <a class="button" href="https://nefibernal.github.io/nefianalytics/quick-kpi-card/Quick-KPI-Card.trex" download>Download the .trex file</a>
+          </div>
+        </div>
+        <div>
+          <ol class="steps">
+            <li>In a Tableau worksheet, open the Marks dropdown, select <strong>Add Extension</strong>, then choose <strong>Access Local Extensions</strong> and open the downloaded <code>.trex</code> file.</li>
+            <li>Drag a measure to <strong>1st Metric</strong>. Add a <strong>2nd Metric</strong> if you want one.</li>
+            <li>Open <strong>Format Extension</strong> to style the card, then add the worksheet to your dashboard.</li>
+          </ol>
+          <details>
+            <summary>Publishing to Tableau Server or Cloud</summary>
+            <p>Ask your Tableau site admin to add the extension URL to the safe list under <strong>Settings → Extensions</strong>.</p>
+            <code class="url">https://nefibernal.github.io/nefianalytics/quick-kpi-card/index.html</code>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">
+    <div class="wrap"><span>Nefi Analytics</span><span>Created by <a href="https://www.linkedin.com/in/nefi-bernal/">Nefi Bernal</a></span></div>
+  </footer>
+  <script>
+    for (const toggle of document.querySelectorAll('[data-toggle]')) {
+      const part = document.querySelector('[data-part="' + toggle.dataset.toggle + '"]');
+      function update() { part.hidden = !toggle.checked; }
+      toggle.addEventListener('change', update);
+      update();
+    }
+  </script>
+</body>
+</html>
