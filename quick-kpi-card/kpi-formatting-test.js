@@ -71,7 +71,7 @@ async function connect() {
       const spec = await worksheet.getVisualSpecificationAsync();
       const encodings = spec.marksSpecifications[spec.activeMarksSpecificationIndex]?.encodings ?? [];
       const fields = slots.map(slot => encodings.find(encoding => encoding.id === slot)?.field);
-      let result = { message: 'Connected to Tableau. Drag a measure to Primary Metric, then add Secondary Metric.' };
+      let result = { message: 'Drag a measure to 1st Metric.' };
       if (fields.some(Boolean)) result = await readMeasures(worksheet, fields);
       if (request === latestRequest) show(result.message, result.metrics);
     } catch (error) {
@@ -109,7 +109,6 @@ async function readMeasures(worksheet, fields) {
     let message = '';
     if (missingMeasure) message = 'At least one selected measure was missing from Tableau’s summary data.';
     else if (!fields[0]) message = 'Secondary Metric loaded. Add Primary Metric to finish the test.';
-    else if (!fields[1]) message = 'Primary Metric loaded. Add Secondary Metric to finish the test.';
     return { metrics, message };
   } finally {
     await reader.releaseAsync();

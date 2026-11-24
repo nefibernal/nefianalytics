@@ -26,6 +26,7 @@ const tableauFontWeights = {
 };
 
 const textDefaults = { font: 'Tableau Medium', size: 14, color: '#000000' };
+const secondaryTextDefaults = { ...textDefaults, size: 10 };
 const metricDefaults = {
   alignment: 'center',
   background: '#ffffff',
@@ -38,12 +39,18 @@ export const DEFAULTS = {
   header: {
     title: 'Quick KPI Card',
     height: 32,
-    background: '#f28e2b',
+    background: '#5577a6',
     alignment: 'center',
-    style: textDefaults
+    style: { ...textDefaults, color: '#ffffff' }
   },
   primary: metricDefaults,
-  secondary: { ...metricDefaults, background: '#f3f3f3', labelPosition: 'below' },
+  secondary: {
+    ...metricDefaults,
+    background: '#f3f3f3',
+    labelPosition: 'below',
+    valueStyle: secondaryTextDefaults,
+    labelStyle: secondaryTextDefaults
+  },
   image: { side: 'left', name: '', src: '' }
 };
 
@@ -61,7 +68,7 @@ export function readSettings(settings) {
   return {
     header: {
       ...DEFAULTS.header, ...config.header,
-      style: { ...textDefaults, ...config.header?.style }
+      style: { ...DEFAULTS.header.style, ...config.header?.style }
     },
     primary: {
       ...DEFAULTS.primary, ...config.primary,
@@ -70,8 +77,8 @@ export function readSettings(settings) {
     },
     secondary: {
       ...DEFAULTS.secondary, ...config.secondary,
-      valueStyle: { ...textDefaults, ...config.secondary?.valueStyle },
-      labelStyle: { ...textDefaults, ...config.secondary?.labelStyle }
+      valueStyle: { ...DEFAULTS.secondary.valueStyle, ...config.secondary?.valueStyle },
+      labelStyle: { ...DEFAULTS.secondary.labelStyle, ...config.secondary?.labelStyle }
     },
     image: {
       side: config.image?.side ?? DEFAULTS.image.side,
