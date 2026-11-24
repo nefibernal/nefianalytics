@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Format Quick KPI Card</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="vendor/tableau.extensions.js"></script>
+  <script type="module" src="configure.js"></script>
+</head>
+<body class="configuration">
+  <header class="dialog-title">
+    <h1>Format Quick KPI Card</h1>
+    <p>Created by <a href="https://www.linkedin.com/in/nefi-bernal/" target="_blank" rel="noopener noreferrer">Nefi Bernal on LinkedIn</a></p>
+    <p>For Tableau Server or Cloud, ask your site admin to add this extension URL to the safe list under <strong>Settings → Extensions</strong>.</p>
+    <code id="extension-url"></code>
+  </header>
+  <form id="settings" hidden>
+    <div class="dialog-main">
+      <div id="sections" class="sections"></div>
+      <aside class="preview">
+        <h2 id="preview-heading">Preview</h2>
+        <div id="preview-card" aria-labelledby="preview-heading"></div>
+      </aside>
+    </div>
+    <footer class="dialog-footer">
+      <p id="form-message" role="status"></p>
+      <button id="cancel" type="button">Cancel</button>
+      <button id="save" class="accent" type="submit">Save</button>
+    </footer>
+  </form>
+  <p id="startup-message" class="card-status" role="status">Loading settings…</p>
+</body>
+</html>
