@@ -143,7 +143,7 @@ export function renderCard(container, config, metrics) {
       if (settings.alignment === 'center' && typeof ResizeObserver === 'function') {
         const sizeImage = () => {
           if (!image.naturalHeight) return;
-          const height = Math.max(0, contents.getBoundingClientRect().height - 8);
+          const height = Math.max(0, contents.offsetHeight - 8);
           const width = height * image.naturalWidth / image.naturalHeight;
           section.style.setProperty('--center-image-width', `${width}px`);
         };

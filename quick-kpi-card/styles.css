@@ -19,7 +19,7 @@ button, summary, input[type="color"] { cursor: pointer; }
   top: 0;
   left: 0;
   width: 100%;
-  transform-origin: top center;
+  transform-origin: top left;
 }
 .kpi-card { width: 100%; min-width: 0; }
 

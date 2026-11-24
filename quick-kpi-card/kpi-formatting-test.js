@@ -12,9 +12,13 @@ function scheduleFit() {
   fitFrame = requestAnimationFrame(() => {
     fitFrame = undefined;
     const availableHeight = document.documentElement.clientHeight;
+    // Measure at the viewport width so wrapping cannot depend on the last scale.
+    worksheetContent.style.width = '';
     const contentHeight = parseFloat(getComputedStyle(worksheetContent).height);
     const scale = availableHeight > 0 && contentHeight > availableHeight
       ? availableHeight / contentHeight : 1;
+    // Widen the layout before scaling so its visible edges fill the viewport.
+    worksheetContent.style.width = scale < 1 ? `${100 / scale}%` : '';
     worksheetContent.style.transform = scale < 1 ? `scale(${scale})` : '';
   });
 }
