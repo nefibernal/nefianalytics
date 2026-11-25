@@ -1,6 +1,6 @@
 import {
-  ALIGNMENTS, FONTS, FONT_SIZE_RANGE, HEADER_HEIGHT_RANGE, LABEL_POSITIONS,
-  METRIC_PADDING_RANGE, SAMPLE_METRICS,
+  ALIGNMENTS, BORDER_SIZES, CORNERS, FONTS, FONT_SIZE_RANGE, HEADER_HEIGHT_RANGE, LABEL_POSITIONS,
+  METRIC_PADDING_RANGE, SAMPLE_METRICS, SIDES,
   SETTINGS_KEY, applyFontFamily, readSettings, renderCard
 } from './model.js';
 
@@ -22,13 +22,14 @@ const fontFamilies = [
   'Times New Roman', 'Trebuchet MS', 'Tw Cen MT', 'Yu Gothic UI'
 ].sort((a, b) => a.localeCompare(b));
 
-// Tableau Classic 10, with neutral choices for text and backgrounds.
+// The left column contains the neutrals. The other columns use the selected Tableau 20 swatches.
 const colors = [
-  ['Black', '#000000'], ['White', '#ffffff'], ['Light gray', '#f3f3f3'],
-  ['Gray', '#7f7f7f'], ['Slate', '#444444'], ['Blue', '#1f77b4'],
-  ['Orange', '#ff7f0e'], ['Green', '#2ca02c'], ['Red', '#d62728'],
-  ['Purple', '#9467bd'], ['Brown', '#8c564b'], ['Pink', '#e377c2'],
-  ['Olive', '#bcbd22'], ['Cyan', '#17becf'], ['Header orange', '#f28e2b']
+  ['Black', '#000000'], ['Blue', '#4e79a7'], ['Light blue', '#a0cbe8'],
+  ['Orange', '#f28e2b'], ['Light orange', '#ffbe7d'],
+  ['Gray', '#7f7f7f'], ['Green', '#59a14f'], ['Light green', '#8cd17d'],
+  ['Olive', '#b6992d'], ['Yellow', '#f1ce63'],
+  ['White', '#ffffff'], ['Teal', '#499894'], ['Light teal', '#86bcb6'],
+  ['Red', '#e15759'], ['Light red', '#ff9d9a']
 ];
 
 async function run() {
@@ -128,6 +129,7 @@ async function run() {
     showImageSelection();
   });
 
+  addLayoutControls(config.layout);
   form.addEventListener('input', updatePreview);
   form.addEventListener('submit', async event => {
     event.preventDefault();
@@ -187,6 +189,66 @@ function addMetricControls(grid, metric, measureName = 'Measure name') {
   addControl(grid, metric, 'padding', 'Padding (px)', METRIC_PADDING_RANGE);
   addTypography(grid, metric.labelStyle, 'Label');
   addTypography(grid, metric.valueStyle, 'Value');
+}
+
+function addLayoutControls(layout) {
+  const grid = section('Layout');
+  grid.classList.add('card-layout-grid');
+  addControl(grid, layout, 'borderSize', 'Border Size', {
+    choices: BORDER_SIZES,
+    choiceLabel: size => size === '0' ? 'None' : `${size} px`
+  });
+  addColor(grid, layout, 'borderColor', 'Border Color');
+  addLinkedControls(grid, layout, 'corners', 'cornersLinked', 'Corner Radius (px)', 'Link corners', CORNERS);
+  addLinkedControls(grid, layout, 'padding', 'sidesLinked', 'Outer Padding (px)', 'Link sides', SIDES);
+}
+
+function addLinkedControls(grid, layout, valuesKey, linkKey, title, linkLabel, keys) {
+  const group = document.createElement('div');
+  group.className = 'layout-group';
+  const heading = document.createElement('div');
+  heading.className = 'layout-group-heading';
+  const name = document.createElement('span');
+  name.textContent = title;
+  const label = document.createElement('label');
+  const link = document.createElement('input');
+  link.type = 'checkbox';
+  link.checked = layout[linkKey];
+  label.append(link, linkLabel);
+  heading.append(name, label);
+  const controls = document.createElement('div');
+  controls.className = 'layout-positions';
+  const values = layout[valuesKey];
+  const inputs = keys.map(key => {
+    const text = key.replace(/[A-Z]/g, char => ` ${char.toLowerCase()}`);
+    const input = addControl(controls, values, key, text[0].toUpperCase() + text.slice(1), METRIC_PADDING_RANGE);
+    const caption = document.createElement('span');
+    caption.className = 'layout-caption';
+    const icon = document.createElement('span');
+    icon.className = 'layout-indicator';
+    icon.dataset.position = key;
+    icon.setAttribute('aria-hidden', 'true');
+    caption.append(icon, input.parentElement.firstChild);
+    input.before(caption);
+    input.addEventListener('input', () => {
+      if (link.checked && input.validity.valid) sync(input.valueAsNumber);
+    });
+    return input;
+  });
+
+  function sync(value) {
+    keys.forEach((key, i) => {
+      values[key] = value;
+      inputs[i].value = value;
+    });
+  }
+
+  link.addEventListener('input', () => {
+    layout[linkKey] = link.checked;
+    if (link.checked) sync(values[keys[0]]);
+  });
+  group.append(heading, controls);
+  grid.append(group);
 }
 
 function addTypography(grid, style, name) {
@@ -315,8 +377,9 @@ function addControl(grid, record, key, title, options = {}) {
   label.textContent = title;
   const input = document.createElement(options.choices ? 'select' : 'input');
   if (options.choices) {
+    const choiceLabel = options.choiceLabel ?? (choice => choice[0].toUpperCase() + choice.slice(1));
     for (const choice of options.choices) {
-      input.add(new Option(choice[0].toUpperCase() + choice.slice(1), choice));
+      input.add(new Option(choiceLabel(choice), choice));
     }
   } else if (options.min !== undefined) {
     input.type = 'number';

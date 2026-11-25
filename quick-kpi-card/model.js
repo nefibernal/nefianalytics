@@ -5,6 +5,9 @@ export const LABEL_POSITIONS = ['below', 'above', 'left', 'right'];
 export const HEADER_HEIGHT_RANGE = { min: 8, max: 400 };
 export const FONT_SIZE_RANGE = { min: 6, max: 144 };
 export const METRIC_PADDING_RANGE = { min: 0 };
+export const BORDER_SIZES = ['0', '1', '2', '3', '4', '5'];
+export const CORNERS = ['topLeft', 'topRight', 'bottomRight', 'bottomLeft'];
+export const SIDES = ['top', 'right', 'bottom', 'left'];
 export const FONTS = {
   'Tableau Bold': '"Tableau Bold", "Tableau", "Segoe UI", Arial, sans-serif',
   'Tableau Book': '"Tableau Book", "Tableau", "Segoe UI", Arial, sans-serif',
@@ -43,6 +46,14 @@ const metricDefaults = {
 };
 
 export const DEFAULTS = {
+  layout: {
+    borderSize: '0',
+    borderColor: '#000000',
+    cornersLinked: true,
+    sidesLinked: true,
+    corners: { topLeft: 0, topRight: 0, bottomRight: 0, bottomLeft: 0 },
+    padding: { top: 15, right: 15, bottom: 15, left: 15 }
+  },
   header: {
     title: 'Quick KPI Card',
     height: 32,
@@ -108,6 +119,23 @@ function readMetricSettings(metric, defaults) {
   };
 }
 
+function readLayout(layout) {
+  const defaults = DEFAULTS.layout;
+  const cornersLinked = layout?.cornersLinked !== false;
+  const sidesLinked = layout?.sidesLinked !== false;
+  const readEdges = (keys, values, fallback, linked) => Object.fromEntries(keys.map(key => [
+    key, numberSetting(values?.[linked ? keys[0] : key], METRIC_PADDING_RANGE, fallback[key])
+  ]));
+  return {
+    borderSize: BORDER_SIZES.includes(layout?.borderSize) ? layout.borderSize : defaults.borderSize,
+    borderColor: colorSetting(layout?.borderColor, defaults.borderColor),
+    cornersLinked,
+    sidesLinked,
+    corners: readEdges(CORNERS, layout?.corners, defaults.corners, cornersLinked),
+    padding: readEdges(SIDES, layout?.padding, defaults.padding, sidesLinked)
+  };
+}
+
 export function readSettings(settings) {
   const saved = settings.get(SETTINGS_KEY);
   let config;
@@ -121,6 +149,7 @@ export function readSettings(settings) {
   const image = config?.image;
   const src = imageSource(image?.src) ? image.src : DEFAULTS.image.src;
   return {
+    layout: readLayout(config?.layout),
     header: {
       title: textSetting(header?.title, DEFAULTS.header.title),
       height: numberSetting(header?.height, HEADER_HEIGHT_RANGE, DEFAULTS.header.height),
@@ -146,6 +175,13 @@ export function renderCard(container, config, metrics) {
   cardObservers.delete(container);
   const card = document.createElement('article');
   card.className = 'kpi-card';
+  const { borderSize, borderColor, corners, padding } = config.layout;
+  const outer = document.createElement('div');
+  outer.style.padding = SIDES.map(side => `${padding[side]}px`).join(' ');
+  card.style.border = `${borderSize}px solid ${borderColor}`;
+  card.style.borderRadius = CORNERS.map(corner => `${corners[corner]}px`).join(' ');
+  if (CORNERS.some(corner => corners[corner] > 0)) card.style.overflow = 'hidden';
+  outer.append(card);
   const metricLayouts = new Map();
 
   if (config.header.title.trim()) {
@@ -223,7 +259,7 @@ export function renderCard(container, config, metrics) {
   }
 
   container.textContent = '';
-  container.append(card);
+  container.append(outer);
   if (typeof ResizeObserver === 'function' && metricLayouts.size) {
     const observer = new ResizeObserver(entries => requestAnimationFrame(() => {
       if (!card.isConnected) return;
