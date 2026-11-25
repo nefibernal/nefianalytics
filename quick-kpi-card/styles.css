@@ -47,6 +47,7 @@ button, summary, input[type="color"] { cursor: pointer; }
 
 .kpi-section[data-image-side="left"] { grid-template-columns: 30% minmax(0, 1fr); }
 .kpi-section[data-image-side="right"] { grid-template-columns: minmax(0, 1fr) 30%; }
+.kpi-section[data-image-side] { column-gap: 4px; }
 
 .kpi-image { position: relative; min-width: 0; }
 .kpi-image img {
@@ -55,26 +56,20 @@ button, summary, input[type="color"] { cursor: pointer; }
   left: 0;
   width: 100%;
   height: 100%;
-  padding: 4px;
-  padding-left: min(8px, 10%);
-  padding-right: min(8px, 10%);
   object-fit: contain;
 }
 
 .kpi-section[data-image-side="left"] .kpi-image img {
-  padding-right: min(4px, 5%);
   object-position: right center;
 }
 
 .kpi-section[data-image-side="right"] .kpi-image img {
-  padding-left: min(4px, 5%);
   object-position: left center;
 }
 
 .kpi-section[data-image-side][data-alignment="center"] {
   --image-track: min(30%, var(--center-image-width, 64px));
   justify-content: center;
-  column-gap: 4px;
 }
 
 .kpi-section[data-image-side="left"][data-alignment="center"] {
@@ -86,7 +81,6 @@ button, summary, input[type="color"] { cursor: pointer; }
 }
 
 .kpi-section[data-image-side][data-alignment="center"] .kpi-image img {
-  padding: 4px 0;
   object-position: center;
 }
 
@@ -97,7 +91,6 @@ button, summary, input[type="color"] { cursor: pointer; }
   justify-content: center;
   min-width: 0;
   min-height: 0;
-  padding: 4px 6px;
   line-height: 1.18;
   text-align: center;
 }
@@ -148,6 +141,10 @@ button, summary, input[type="color"] { cursor: pointer; }
 fieldset { margin: 0 0 14px; padding: 12px 14px 14px; min-width: 0; border: 1px solid #d7dfe6; border-radius: 7px; background: #fff; }
 legend { padding-inline: 6px; font-size: 15px; font-weight: 650; }
 .field-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 12px; }
+.field-grid.metric-field-grid {
+  grid-template-columns: minmax(0, 1fr) 84px 72px 76px;
+  column-gap: 8px;
+}
 .field-grid > label, .color-control { display: grid; gap: 5px; min-width: 0; font-size: 12px; }
 .typography-row {
   grid-column: 1 / -1;
@@ -251,6 +248,9 @@ button:disabled { opacity: .55; cursor: default; }
   .dialog-main { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .preview { position: static; grid-row: 1; max-width: 330px; width: 100%; }
   .field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 420px) {
+  .field-grid.metric-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 360px) {
   .typography-row { grid-template-columns: minmax(0, 1fr) 59px 57px auto; gap: 4px; }

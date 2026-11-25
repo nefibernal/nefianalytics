@@ -1,5 +1,6 @@
 import {
-  ALIGNMENTS, FONTS, FONT_SIZE_RANGE, HEADER_HEIGHT_RANGE, LABEL_POSITIONS, SAMPLE_METRICS,
+  ALIGNMENTS, FONTS, FONT_SIZE_RANGE, HEADER_HEIGHT_RANGE, LABEL_POSITIONS,
+  METRIC_PADDING_RANGE, SAMPLE_METRICS,
   SETTINGS_KEY, applyFontFamily, readSettings, renderCard
 } from './model.js';
 
@@ -179,9 +180,11 @@ function section(title) {
 }
 
 function addMetricControls(grid, metric, measureName = 'Measure name') {
+  grid.classList.add('metric-field-grid');
   addControl(grid, metric, 'label', 'Label Title', { placeholder: measureName, maxLength: 160 });
   addControl(grid, metric, 'alignment', 'Alignment', { choices: ALIGNMENTS });
-  addColor(grid, metric, 'background', 'Background');
+  addColor(grid, metric, 'background', 'Background', { compact: true });
+  addControl(grid, metric, 'padding', 'Padding (px)', METRIC_PADDING_RANGE);
   addTypography(grid, metric.labelStyle, 'Label');
   addTypography(grid, metric.valueStyle, 'Value');
 }
@@ -319,7 +322,7 @@ function addControl(grid, record, key, title, options = {}) {
     input.type = 'number';
     input.required = true;
     input.min = options.min;
-    input.max = options.max;
+    if (options.max !== undefined) input.max = options.max;
   } else {
     input.type = 'text';
     input.placeholder = options.placeholder;

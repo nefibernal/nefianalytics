@@ -4,6 +4,7 @@ export const ALIGNMENTS = ['left', 'center', 'right'];
 export const LABEL_POSITIONS = ['below', 'above', 'left', 'right'];
 export const HEADER_HEIGHT_RANGE = { min: 8, max: 400 };
 export const FONT_SIZE_RANGE = { min: 6, max: 144 };
+export const METRIC_PADDING_RANGE = { min: 0 };
 export const FONTS = {
   'Tableau Bold': '"Tableau Bold", "Tableau", "Segoe UI", Arial, sans-serif',
   'Tableau Book': '"Tableau Book", "Tableau", "Segoe UI", Arial, sans-serif',
@@ -30,13 +31,15 @@ const tableauFontWeights = {
 const textDefaults = {
   font: 'Tableau Medium', size: 14, color: '#000000', bold: false, italic: false, underline: false
 };
-const secondaryTextDefaults = { ...textDefaults, size: 10 };
+const primaryTextDefaults = { ...textDefaults, size: 22 };
+const secondaryTextDefaults = { ...textDefaults, size: 12 };
 const metricDefaults = {
   alignment: 'center',
   background: '#ffffff',
   label: '',
-  valueStyle: textDefaults,
-  labelStyle: textDefaults
+  padding: 4,
+  valueStyle: primaryTextDefaults,
+  labelStyle: primaryTextDefaults
 };
 
 export const DEFAULTS = {
@@ -70,7 +73,7 @@ function textSetting(value, fallback) {
   return typeof value === 'string' ? value : fallback;
 }
 
-function numberSetting(value, { min, max }, fallback) {
+function numberSetting(value, { min, max = Number.MAX_SAFE_INTEGER }, fallback) {
   return Number.isInteger(value) && value >= min && value <= max ? value : fallback;
 }
 
@@ -98,6 +101,7 @@ function readMetricSettings(metric, defaults) {
     alignment: ALIGNMENTS.includes(metric?.alignment) ? metric.alignment : defaults.alignment,
     background: colorSetting(metric?.background, defaults.background),
     label: textSetting(metric?.label, defaults.label),
+    padding: numberSetting(metric?.padding, METRIC_PADDING_RANGE, defaults.padding),
     valueStyle: readTextStyle(metric?.valueStyle, defaults.valueStyle),
     labelStyle: readTextStyle(metric?.labelStyle, defaults.labelStyle)
   };
@@ -164,6 +168,7 @@ export function renderCard(container, config, metrics) {
     const settings = config[slot];
     section.dataset.alignment = settings.alignment;
     section.style.backgroundColor = settings.background ?? '#ffffff';
+    section.style.padding = `${settings.padding}px`;
     const contents = document.createElement('div');
     contents.className = 'kpi-contents';
     contents.dataset.labelPosition = settings.labelPosition ?? 'below';
@@ -189,7 +194,7 @@ export function renderCard(container, config, metrics) {
       if (settings.alignment === 'center' && typeof ResizeObserver === 'function') {
         const sizeImage = () => {
           if (!image.naturalHeight) return;
-          const height = Math.max(0, contents.offsetHeight - 8);
+          const height = contents.offsetHeight;
           const width = height * image.naturalWidth / image.naturalHeight;
           section.style.setProperty('--center-image-width', `${width}px`);
         };
