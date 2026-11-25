@@ -1,0 +1,159 @@
+import { DEFAULTS, SAMPLE_METRICS, SETTINGS_KEY, SLOTS as slots, readSettings, renderCard } from './model.js';
+
+const container = document.querySelector('#card');
+const status = document.querySelector('#status');
+const worksheetContent = document.querySelector('.worksheet-content');
+let config = DEFAULTS;
+let currentMetrics = {};
+let fitFrame;
+
+function scheduleFit() {
+  if (fitFrame !== undefined) return;
+  fitFrame = requestAnimationFrame(() => {
+    fitFrame = undefined;
+    const availableHeight = document.documentElement.clientHeight;
+    // Measure at the viewport width so wrapping cannot depend on the last scale.
+    worksheetContent.style.width = '';
+    const contentHeight = parseFloat(getComputedStyle(worksheetContent).height);
+    const scale = availableHeight > 0 && contentHeight > availableHeight
+      ? availableHeight / contentHeight : 1;
+    // Widen the layout before scaling so its visible edges fill the viewport.
+    worksheetContent.style.width = scale < 1 ? `${100 / scale}%` : '';
+    worksheetContent.style.transform = scale < 1 ? `scale(${scale})` : '';
+  });
+}
+
+window.addEventListener('resize', scheduleFit);
+if (typeof ResizeObserver === 'function') {
+  const fitObserver = new ResizeObserver(scheduleFit);
+  fitObserver.observe(worksheetContent);
+}
+scheduleFit();
+
+function show(message, metrics = []) {
+  status.textContent = message;
+  status.hidden = !message;
+  currentMetrics = Object.fromEntries(slots.map((slot, index) => [slot, metrics[index]]));
+  renderCard(container, config, currentMetrics);
+  scheduleFit();
+}
+
+function reportError(stage, error) {
+  const detail = error?.errorCode ?? error?.message;
+  show(detail ? `${stage}: ${detail}` : stage);
+  console.error(stage, error);
+}
+
+async function connect() {
+  if (new URLSearchParams(location.search).has('browser')) {
+    config = readSettings({ get: key => sessionStorage.getItem(key) });
+    show('Sample data. Open this extension in Tableau to use live measures.', slots.map(slot => SAMPLE_METRICS[slot]));
+    return;
+  }
+
+  if (!window.tableau?.extensions) {
+    show('Page loaded. The Tableau Extensions API script did not load.');
+    return;
+  }
+
+  const { extensions, TableauEventType, ErrorCodes } = window.tableau;
+  const timer = window.setTimeout(() => {
+    show('Page and Tableau API script loaded. Still waiting for Tableau to initialize.');
+  }, 8000);
+  try {
+    await extensions.initializeAsync({ configure: openFormatDialog });
+  } finally {
+    window.clearTimeout(timer);
+  }
+
+  config = readSettings(extensions.settings);
+  const worksheet = extensions.worksheetContent.worksheet;
+
+  async function openFormatDialog() {
+    try {
+      const url = new URL('configure.html', location.href).href;
+      const extensionUrl = new URL(location.href);
+      extensionUrl.hash = '';
+      const dialogContext = { ...currentMetrics, extensionUrl: extensionUrl.href };
+      const payload = await extensions.ui.displayDialogAsync(url, JSON.stringify(dialogContext), { width: 920, height: 720 });
+      const result = JSON.parse(payload);
+      if (!result.saved) return;
+      config = readSettings({ get: key => key === SETTINGS_KEY ? result.settings : undefined });
+      renderCard(container, config, currentMetrics);
+      scheduleFit();
+    } catch (error) {
+      if (error.errorCode !== ErrorCodes.DialogClosedByUser) {
+        const detail = error.errorCode ?? error.message;
+        status.hidden = false;
+        status.textContent = detail ? `Could not open formatting: ${detail}` : 'Could not open formatting.';
+        console.error(error);
+      }
+    }
+  }
+  let latestRequest = 0;
+  let refreshing = false;
+
+  async function refresh() {
+    latestRequest += 1;
+    if (refreshing) return;
+    refreshing = true;
+    try {
+      // Tableau allows one active summary data reader per worksheet.
+      let request;
+      do {
+        request = latestRequest;
+        try {
+          const spec = await worksheet.getVisualSpecificationAsync();
+          if (request !== latestRequest) continue;
+          const encodings = spec.marksSpecifications[spec.activeMarksSpecificationIndex]?.encodings ?? [];
+          const fields = slots.map(slot => encodings.find(encoding => encoding.id === slot)?.field);
+          const result = fields.some(Boolean)
+            ? await readMeasures(worksheet, fields)
+            : { message: 'Drag a measure to 1st Metric.' };
+          if (request === latestRequest) show(result.message, result.metrics);
+        } catch (error) {
+          if (request === latestRequest) reportError('Connected to Tableau, but could not read the measures', error);
+        }
+      } while (request !== latestRequest);
+    } finally {
+      refreshing = false;
+    }
+  }
+
+  worksheet.addEventListener(TableauEventType.SummaryDataChanged, refresh);
+  await refresh();
+}
+
+async function readMeasures(worksheet, fields) {
+  const metrics = fields.map(field => field && { label: field.name });
+  const reader = await worksheet.getSummaryDataReaderAsync(2, { ignoreSelection: true });
+  try {
+    if (reader.totalRowCount > 1) {
+      return { metrics, message: 'This test expects one mark. Move grouping fields off Rows, Columns, or Detail.' };
+    }
+    if (reader.pageCount === 0) return { metrics, message: 'Tableau returned no marks.' };
+
+    const page = await reader.getPageAsync(0);
+    if (!page.data.length) return { metrics, message: 'Tableau returned no marks.' };
+
+    const row = page.data[0];
+    const columns = fields.map(field => field ? page.columns.findIndex(column => column.fieldId === field.fieldId) : null);
+    const missingMeasure = columns.includes(-1);
+
+    columns.forEach((index, slot) => {
+      if (index == null || index < 0) return;
+      const cell = row[index];
+      const raw = cell?.nativeValue !== undefined ? cell.nativeValue : cell?.value;
+      if (raw != null && raw !== '%null%') metrics[slot].value = cell.formattedValue || String(raw);
+    });
+
+    let message = '';
+    if (missingMeasure) message = 'At least one selected measure was missing from Tableau’s summary data.';
+    else if (!fields[0]) message = 'Secondary Metric loaded. Add Primary Metric to finish the test.';
+    return { metrics, message };
+  } finally {
+    await reader.releaseAsync();
+  }
+}
+
+connect().catch(error => reportError('Tableau connection failed', error));
