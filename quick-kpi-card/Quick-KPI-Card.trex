@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest manifest-version="0.1" xmlns="http://www.tableau.com/xml/extension_manifest">
+  <worksheet-extension id="io.github.nefibernal.quick-kpi-card.formatting-test" extension-version="1.0.3">
+    <default-locale>en_US</default-locale>
+    <name resource-id="name"/>
+    <description>Displays a customizable KPI card with two Tableau measures and an optional image.</description>
+    <author name="Nefi Bernal" email="" website="https://nefibernal.github.io/nefianalytics/"/>
+    <min-api-version>1.11</min-api-version>
+    <source-location>
+      <url>https://nefibernal.github.io/nefianalytics/quick-kpi-card/index.html</url>
+    </source-location>
+    <icon>iVBORw0KGgoAAAANSUhEUgAAAEYAAABGCAYAAABxLuKEAAABZUlEQVR42u2cPQ6CQBCFZUPrPfACtnoDC6m8hRYewsJjWGnBDbS1NtHbaGViCMIu7C4M872aDPM+3gw/iU4mCLkocTk4W6zfks2+bpfEKxjpQNoASjQBcQFktEJp8mi0QmnyajRDqfNsuDFbjJLGtPzzTmKaEqM5LVUMSIzrcwxgUKXSrgXuq9cgjc2LrB8wQwVS7q8tIEbJJ5ihp8VHryQGMIABDGAAAxjAqHpXmm4fslwWOYlhlAADGPnL11azZR6k7vN6lpuYUFBC1w4KJkbjoc/BjokJJsYOCH0OI7HxGOBTyVeVHQMYwACGV4KSNvtj5xqnw25cifEBxWcdRgkwQsH42g197phgy7dPU4wSYAAjG0yML3S+1LZXEuP7rvS9EkP95tI11WnfDbB8AQMYHWBcfqw9Vv0yIDE2o6Q5NWXvJMZ2+WpMTZVnY3ugJii1o6QBTp1H/ialC5ixAOJZDYXTB0WBbJWYfSU4AAAAAElFTkSuQmCC</icon>
+    <context-menu>
+      <configure-context-menu-item/>
+    </context-menu>
+    <encoding id="primary">
+      <display-name>1st&#10;Metric</display-name>
+      <role-spec>
+        <role-type>continuous-measure</role-type>
+        <role-type>discrete-measure</role-type>
+      </role-spec>
+      <fields max-count="1"/>
+      <encoding-icon token="digit-1"/>
+      <tooltip>Choose the primary measure. Use the measure pill menu to set aggregation.</tooltip>
+    </encoding>
+    <encoding id="secondary">
+      <display-name>2nd&#10;Metric</display-name>
+      <role-spec>
+        <role-type>continuous-measure</role-type>
+        <role-type>discrete-measure</role-type>
+      </role-spec>
+      <fields max-count="1"/>
+      <encoding-icon token="digit-2"/>
+      <tooltip>Choose the secondary measure. Use the measure pill menu to set aggregation.</tooltip>
+    </encoding>
+  </worksheet-extension>
+  <resources>
+    <resource id="name">
+      <text locale="en_US">Quick KPI Card</text>
+    </resource>
+  </resources>
+</manifest>
